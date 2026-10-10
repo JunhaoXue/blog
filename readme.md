@@ -1,135 +1,48 @@
-<p align="center">
-<a href="https://pigjian.com/">
-<img src="https://pigjian.com/uploads/Logo.png" alt="Powered By Jiajian Chan" width="160">
-</a>
-</p>
+# Junhao Xue Blog
 
-<p align="center">🎈 PJ Blog is an open source blog built with Laravel and Vue.js. <a href="https://pigjian.com">https://pigjian.com</a></p>
+基于 Next.js 16.4、React 19.3、TypeScript、Better Auth 1.7 和 SQLite 的个人博客，面向 `xuejunhao.com`，前台和管理后台由同一套全栈应用提供。
 
-<p align="center">
-  <b>Special thanks to the generous sponsorship by:</b>
-  <br><br>
-  <a href="https://www.upyun.com">
-    <img src="https://pigjian.com/storage/logo/upyun.png" width=300>
-  </a>
-</p>
+## 本机使用
 
-# PJ Blog
+需要 Node.js 24。本机项目位于 `/Users/sensespark/Workspace/blog`。
 
-This is a powerful blog, I try to build the blog more beautiful, more convenient. 
-
-`Laravel 5.*` and `Vuejs 2.*` combined with the establishment of a good response and quickly dashboard, the dashboard made through the `Vuejs` component development.
-
-I believe it will be better and better. If you are interested in this, you can join and enjoy it.
-
-Here is [documents](https://manual.pigjian.com/)
-
-[Example](http://example.pigjian.com)
-
-## Basic Features
-
-- Manage users, articles, discussions and media
-- Statistical tables
-- Categorize articles
-- Label classification
-- Content moderation
-- Own comments system
-- Multi-language switching
-- Markdown Editor
-- Roles & Permissions
-- and more...
-
-[PJ Blog](https://github.com/jcc/blog) Laravel 5.*
-
-## Server Requirements
-
-- PHP >= 7.1.0
-- Node >= 6.x
-- OpenSSL PHP Extension
-- PDO PHP Extension
-- Mbstring PHP Extension
-- Tokenizer PHP Extension
-- XML PHP Extension
-
-## Preview
-
-![New Blog](https://pig-storage.b0.upaiyun.com/cover/2018/09/07/d2T4cAjTagf5L1rXH1FjLsFkJVffsPIGPkHEl2A5.jpg)
-
-![New Blog](https://pig-storage.b0.upaiyun.com/cover/2018/09/07/4b7ExtB6NHZVh8n5KnW2673Ej6gwtLm1SUAubtpa.jpg)
-
-## Install
-
-### 1. Clone the source code or create new project.
-
-```shell
-git clone https://github.com/jcc/blog.git
+```bash
+npm run install:web
+npm run setup
+npm run build
+npm run local:start
 ```
 
-OR
+- 首页：http://localhost:3000
+- 后台：http://localhost:3000/admin
+- 初始管理员：`admin@xuejunhao.com`，随机密码保存在 `web/local-admin.txt`，登录后可在“我的账号”修改。
+- 日志：`web/data/local-service.log`
+- 停止：`npm run local:stop`；状态：`npm run local:status`
+- 开发：`npm run dev`；前台生产运行：`npm start`
 
-```shell
-composer create-project jcc/blog
+后台可编写及预览 Markdown，管理草稿、公开与定时文章、分类、标签、友链、图片、评论与讨论审核、读者和管理员角色。读者可注册、登录、改名和修改密码、评论、点赞、发起讨论及回复。前台提供主题筛选、搜索、归档、明暗主题、移动布局、RSS、站点地图和文章 SEO。
+
+三篇预置文章均标明“示例”，可以在后台替换或删除；示例文章不进入 RSS 或文章站点地图。初始化脚本不会覆盖已有账号或文章。数据库、图片、凭据、构建产物和本机验收资料均由 Git 忽略。
+
+## 目录
+
+- `web/`：新版完整应用和锁文件。
+- `legacy/`：原 Laravel 5.8 / Vue 2 源码原样归档，保留版权与历史，默认不运行。
+- `docs/DEPLOYMENT.md`：服务器、Docker、反向代理、域名和备份说明。
+- `.github/workflows/ci.yml`：安装、类型、构建、隔离接口回归与产物检查。
+
+当前 checkout 最初未提供旧数据库或已运行实例；新版只初始化示例资料，未声称迁移旧站内容或旧密码。旧项目的第三方登录、邮件通知、关注及细粒度自定义角色不在本次新版交付范围；已接入的管理员／读者权限、密码登录、文章与社区核心功能可独立使用。
+
+## 验证与备份
+
+```bash
+npm run typecheck
+npm run build
+npm test
+cd web
+npm run backup
 ```
 
-### 2. Set the basic config
+接口回归使用临时数据库、临时图片目录和独立 3001 端口，结束后自动清理，不修改本机博客资料。数据库使用 WAL 与在线备份 API；不要在运行中只复制主 SQLite 文件。图片备份为现有文件的副本；需要严格一致备份时，在短暂停止写入后进行。凭据文件另行私密保存，不提交到仓库。
 
-```shell
-cp .env.example .env
-```
-
-Edit the `.env` file and set the `database` and other config for the system after you copy the `.env`.example file.
-
-### 2. Install the extended package dependency.
-
-Install the `Laravel` extended repositories: 
-
-```shell
-composer install -vvv
-```
-
-Install the `Vuejs` extended repositories: 
-
-```shel
-npm install
-```
-
-Compile the js code: 
-
-```shel
-npm run dev
-
-// OR
-
-npm run watch
-
-// OR
-
-npm run production
-```
-
-### 3. Run the blog install command, the command will run the `migrate` command and generate test data.
-
-```shell
-php artisan blog:install
-```
-
-## Contributors
-
-- [Jiajian Chan](http://github.com/jcc)
-
-## Thanks
-
-- [overtrue](https://github.com/overtrue)
-- [Laravist](https://www.laravist.com/)
-- [Laravel - China](https://laravel-china.org/)
-
-## Donate
-
-Support all ERC20 tokens. My Address:
-**0x600dfF1311E5DA3a8697fD86d4Fd9bed257395eb**
-
-## License
-
-The project is open-sourced software licensed under the [MIT license](http://opensource.org/licenses/MIT).
-
-QQ Group: 272734386
+代码托管在本仓库。完整博客需要 Node.js 服务器，GitHub Pages 无法运行登录和数据库后台。服务器信息尚未提供，本轮只部署本机，正式域名解析和证书保持待上线。

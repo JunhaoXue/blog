@@ -1,0 +1,8 @@
+node_modules
+.next
+.env*
+data
+uploads
+local-admin.txt
+test-results
+*.tsbuildinfo
