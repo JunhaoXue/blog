@@ -6,8 +6,8 @@ export function GitHubRecords({ records }: { records: GitHubRecord[] }) {
   return (
     <section className="github-records" aria-labelledby="github-records-title">
       <div className="github-records-heading">
-        <h2 id="github-records-title">
-          <Github size={22} aria-hidden="true" /> GitHub 记录
+        <h2 id="github-records-title" className="sr-only">
+          GitHub 记录
         </h2>
         <a
           className="small-link"
@@ -15,7 +15,7 @@ export function GitHubRecords({ records }: { records: GitHubRecord[] }) {
           target="_blank"
           rel="noopener noreferrer"
         >
-          我的 GitHub ↗
+          <Github size={16} aria-hidden="true" /> GitHub
         </a>
       </div>
       {records.length ? (

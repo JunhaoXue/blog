@@ -16,11 +16,7 @@ export default function Discussions() {
   return (
     <div className="page-shell">
       <div className="page-heading">
-        <span className="eyebrow">LET’S TALK ABOUT IT</span>
-        <h1>
-          一起聊聊<span className="accent">.</span>
-        </h1>
-        <p>一个问题、一点观察，或者一个还没想明白的念头。</p>
+        <h1>讨论</h1>
       </div>
       <DiscussionForm />
       {discussions.map((item) => (
@@ -33,7 +29,6 @@ export default function Discussions() {
             {item.author} · {formatDate(item.created_at)}
           </span>
           <h2>{item.title} ↗</h2>
-          <p>{item.content.slice(0, 140)}</p>
         </Link>
       ))}
       {!discussions.length && (

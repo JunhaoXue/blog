@@ -82,11 +82,7 @@ export function ArticleEditor({
     <>
       <div className="admin-heading">
         <div>
-          <h1>
-            {post ? "编辑文章" : "写一篇文章"}
-            <span className="accent">.</span>
-          </h1>
-          <p className="muted">支持 Markdown，先存为草稿，再慢慢打磨。</p>
+          <h1>{post ? "编辑文章" : "写一篇文章"}</h1>
         </div>
         <Link
           href="/admin/articles"
@@ -210,7 +206,7 @@ export function ArticleEditor({
           </div>
         )}
         <fieldset className="github-editor">
-          <legend>GitHub 记录</legend>
+          <legend className="sr-only">GitHub 记录</legend>
           <p className="muted">
             关联这篇文章的仓库、提交或 PR，最多 12 条；按添加顺序展示。
           </p>

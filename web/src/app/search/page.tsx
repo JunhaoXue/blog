@@ -17,10 +17,7 @@ export default async function Search({
   return (
     <div className="page-shell">
       <div className="page-heading">
-        <span className="eyebrow">FIND A THOUGHT</span>
-        <h1>
-          找一篇记录<span className="accent">.</span>
-        </h1>
+        <h1>搜索</h1>
       </div>
       <form className="search-form" action="/search">
         <label className="sr-only" htmlFor="q">

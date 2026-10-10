@@ -46,16 +46,7 @@ export default function Login() {
   }
   return (
     <div className="auth-shell">
-      <span className="eyebrow">WELCOME TO THE JOURNAL</span>
-      <h1>
-        {register ? "成为这里的读者" : "很高兴再见到你"}
-        <span className="accent">.</span>
-      </h1>
-      <p>
-        {register
-          ? "创建账号，参与评论和讨论。"
-          : "登录后，继续写作或参与讨论。"}
-      </p>
+      <h1>{register ? "注册" : "登录"}</h1>
       <form onSubmit={submit}>
         {register && (
           <div className="form-field">

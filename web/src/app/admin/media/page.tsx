@@ -11,9 +11,7 @@ export default async function Media() {
     <>
       <div className="admin-heading">
         <div>
-          <h1>
-            图片库<span className="accent">.</span>
-          </h1>
+          <h1>图片库</h1>
           <p className="muted">
             支持 PNG、JPEG、GIF 和 WebP，单张不超过 10 MB。
           </p>

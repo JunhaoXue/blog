@@ -22,7 +22,6 @@ export default async function AdminLayout({
   return (
     <div className="admin-layout">
       <aside className="admin-nav">
-        <span className="eyebrow">YOUR WORKSPACE</span>
         <Link href="/admin">
           <LayoutDashboard size={16} />
           概览

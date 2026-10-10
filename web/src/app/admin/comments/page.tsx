@@ -24,9 +24,7 @@ export default async function Moderation() {
     <>
       <div className="admin-heading">
         <div>
-          <h1>
-            评论与讨论<span className="accent">.</span>
-          </h1>
+          <h1>评论与讨论</h1>
           <p className="muted">
             普通读者评论审核后显示。已通过的评论可以隐藏。
           </p>
@@ -63,7 +61,7 @@ export default async function Moderation() {
         </div>
       ))}
       {!comments.length && <div className="empty-state">还没有评论。</div>}
-      <h2 style={{ fontSize: 20, marginTop: 40 }}>讨论区话题</h2>
+      <h2 className="sr-only">讨论区话题</h2>
       {discussions.map((item) => (
         <div className="management-row" key={item.id}>
           <div>

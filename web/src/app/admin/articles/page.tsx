@@ -10,9 +10,7 @@ export default async function Articles() {
     <>
       <div className="admin-heading">
         <div>
-          <h1>
-            文章<span className="accent">.</span>
-          </h1>
+          <h1>文章</h1>
           <p className="muted">
             共 {posts.length} 篇，包含草稿和定时发布的文章。
           </p>

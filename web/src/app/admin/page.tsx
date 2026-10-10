@@ -23,10 +23,7 @@ export default async function Dashboard() {
     <>
       <div className="admin-heading">
         <div>
-          <h1>
-            写作工作台<span className="accent">.</span>
-          </h1>
-          <p className="muted">让想法变成下一篇文章。</p>
+          <h1>写作工作台</h1>
         </div>
         <Link className="button" href="/admin/articles/new">
           ＋ 写文章
@@ -43,9 +40,7 @@ export default async function Dashboard() {
       <div className="notice">
         新版已就绪。预置内容均为示例文章，可在文章管理中替换或删除。正式写作从“写文章”开始。
       </div>
-      <h2 style={{ fontSize: 18, fontWeight: 500, marginTop: 35 }}>
-        最近的文章
-      </h2>
+      <h2 className="sr-only">最近的文章</h2>
       <div className="admin-table-wrap">
         <table className="admin-table">
           <thead>

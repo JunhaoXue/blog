@@ -11,10 +11,7 @@ export default async function Account() {
   if (!session) redirect("/login?next=/account");
   return (
     <div className="auth-shell">
-      <span className="eyebrow">YOUR ACCOUNT</span>
-      <h1>
-        我的账号<span className="accent">.</span>
-      </h1>
+      <h1>我的账号</h1>
       <p>{session.user.email}</p>
       {session.user.role === "admin" && (
         <p>

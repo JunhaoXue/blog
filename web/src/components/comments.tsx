@@ -71,10 +71,7 @@ export function Comments({
     }
   }
   return (
-    <section className="comments">
-      <h2>
-        聊聊想法 <span className="muted">{comments.length}</span>
-      </h2>
+    <section className="comments" aria-label="评论">
       {comments.map((comment) => (
         <article className="comment-row" key={comment.id}>
           <header>

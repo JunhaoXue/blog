@@ -10,11 +10,7 @@ export default function Links() {
   return (
     <div className="page-shell">
       <div className="page-heading">
-        <span className="eyebrow">GOOD PLACES TO VISIT</span>
-        <h1>
-          朋友与链接<span className="accent">.</span>
-        </h1>
-        <p>互联网很大，也有一些值得常去的地方。</p>
+        <h1>友链</h1>
       </div>
       <div className="links-grid">
         {links.map((link) => (
@@ -26,15 +22,10 @@ export default function Links() {
             rel="noopener noreferrer"
           >
             <h2>{link.name} ↗</h2>
-            <p>{link.description}</p>
           </a>
         ))}
       </div>
-      {!links.length && (
-        <div className="empty-state">
-          <p>友链正在整理，稍后再来看看。</p>
-        </div>
-      )}
+      {!links.length && <div className="empty-state"></div>}
     </div>
   );
 }

@@ -39,7 +39,6 @@ export function DiscussionForm() {
     );
   return (
     <form className="discussion-compose" onSubmit={submit}>
-      <h2>开启一个话题</h2>
       <div className="form-field">
         <label htmlFor="discussion-title">标题</label>
         <input id="discussion-title" name="title" required maxLength={180} />

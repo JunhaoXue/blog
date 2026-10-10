@@ -64,7 +64,7 @@ export function AccountForm({ name }: { name: string }) {
         </button>
       </form>
       <hr />
-      <h2>修改密码</h2>
+      <h2 className="sr-only">修改密码</h2>
       <form onSubmit={password}>
         <div className="form-field">
           <label htmlFor="current">当前密码</label>

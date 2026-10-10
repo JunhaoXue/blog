@@ -6,18 +6,15 @@ export function PostList({ posts }: { posts: Post[] }) {
   if (!posts.length)
     return (
       <div className="empty-state">
-        <h2>这里还没有文章</h2>
+        <p>这里还没有文章</p>
         <p>换个关键词，或过段时间再来看看。</p>
         <Link href="/">查看全部文章 →</Link>
       </div>
     );
   return (
     <div className="post-list">
-      {posts.map((post, index) => (
+      {posts.map((post) => (
         <article className="post-row" key={post.id}>
-          <span className="post-number">
-            {String(index + 1).padStart(2, "0")}
-          </span>
           <div className="post-content">
             <div className="post-meta">
               <time dateTime={post.date}>{formatDate(post.date)}</time>

@@ -64,7 +64,6 @@ export default async function Article({
         </ReactMarkdown>
       </article>
       <div className="article-end">
-        <span>— 感谢阅读 —</span>
         <div className="tags">
           {post.tags.map((tag) => (
             <Link key={tag} href={`/?tag=${encodeURIComponent(tag)}`}>

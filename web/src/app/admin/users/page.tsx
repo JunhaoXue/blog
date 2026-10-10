@@ -10,9 +10,7 @@ export default async function Users() {
     <>
       <div className="admin-heading">
         <div>
-          <h1>
-            读者与权限<span className="accent">.</span>
-          </h1>
+          <h1>读者与权限</h1>
           <p className="muted">
             管理员可以管理全部内容。权限变更会退出该账号的现有登录。
           </p>

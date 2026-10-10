@@ -9,13 +9,7 @@ export async function Header() {
     <header className="site-header">
       <div className="header-inner">
         <Link href="/" className="brand" aria-label="Junhao Xue 首页">
-          <span className="brand-mark">
-            J<span>·</span>X
-          </span>
-          <span>
-            Junhao Xue
-            <span className="brand-caption">A PERSONAL JOURNAL</span>
-          </span>
+          Junhao Xue
         </Link>
         <nav aria-label="主导航">
           <Link href="/">文章</Link>
@@ -38,12 +32,8 @@ export function Footer() {
   return (
     <footer className="site-footer">
       <div>
-        <span className="brand-mark mini">
-          J<span>·</span>X
-        </span>
         <span>© {new Date().getFullYear()} Junhao Xue</span>
       </div>
-      <span className="footer-note">记录想法，保持好奇。</span>
       <div>
         <Link href="/links">友链</Link>
         <Link href="/feed.xml">

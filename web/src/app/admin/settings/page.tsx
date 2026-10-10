@@ -16,14 +16,12 @@ export default async function Settings() {
     <>
       <div className="admin-heading">
         <div>
-          <h1>
-            分类与友链<span className="accent">.</span>
-          </h1>
+          <h1>分类与友链</h1>
           <p className="muted">让文章更容易找到，也为朋友留一个位置。</p>
         </div>
       </div>
       <section className="settings-section">
-        <h2>文章分类</h2>
+        <h2 className="sr-only">文章分类</h2>
         <SettingsForm type="category" />
         {categories.map((category) => (
           <div className="management-row" key={category.id}>
@@ -47,7 +45,7 @@ export default async function Settings() {
         ))}
       </section>
       <section className="settings-section">
-        <h2>友情链接</h2>
+        <h2 className="sr-only">友情链接</h2>
         <SettingsForm type="link" />
         {links.map((link) => (
           <div className="management-row" key={link.id}>
