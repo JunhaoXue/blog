@@ -508,12 +508,17 @@ svg {
   display: block;
   overflow-x: auto;
   font-size: 14px;
+  margin: 24px 0;
 }
+/* 导入真实笔记后，手机上的三／四列表格被压到每列仅数个字；
+   保留最小列宽，利用表格现有的横向滚动容器承载完整内容。 */
 .prose td,
 .prose th {
   border: 1px solid var(--line);
   padding: 10px 16px;
   text-align: left;
+  min-width: 160px;
+  vertical-align: top;
 }
 .prose img {
   max-width: 100%;
