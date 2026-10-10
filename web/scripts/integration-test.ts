@@ -18,6 +18,7 @@ const env = {
   ADMIN_EMAIL: "admin@example.test",
   ADMIN_PASSWORD: password,
   NEXT_TELEMETRY_DISABLED: "1",
+  BLOG_TEST_FIXTURES: "1",
 };
 const setup = spawnSync(
   process.execPath,
@@ -93,6 +94,46 @@ try {
     await new Promise((resolve) => setTimeout(resolve, 100));
   }
   assert.ok(ready, logs);
+  const blankEnv = {
+    ...env,
+    DATABASE_PATH: path.join(directory, "blank.sqlite"),
+    BLOG_TEST_FIXTURES: "0",
+  };
+  const blankSetup = spawnSync(
+    process.execPath,
+    ["--import", "tsx", "scripts/setup.ts"],
+    { env: blankEnv, encoding: "utf8" },
+  );
+  ok("production setup without generated notes", blankSetup.status, 0);
+  const blankDb = new Database(blankEnv.DATABASE_PATH);
+  try {
+    ok(
+      "production setup leaves articles empty",
+      (
+        blankDb.prepare("SELECT COUNT(*) AS count FROM articles").get() as {
+          count: number;
+        }
+      ).count,
+      0,
+    );
+    const noReseed = spawnSync(
+      process.execPath,
+      ["--import", "tsx", "scripts/setup.ts"],
+      { env: { ...blankEnv, BLOG_TEST_FIXTURES: "1" }, encoding: "utf8" },
+    );
+    ok("repeat setup succeeds on empty production blog", noReseed.status, 0);
+    ok(
+      "repeat setup cannot restore generated notes",
+      (
+        blankDb.prepare("SELECT COUNT(*) AS count FROM articles").get() as {
+          count: number;
+        }
+      ).count,
+      0,
+    );
+  } finally {
+    blankDb.close();
+  }
   for (const url of [
     "/",
     "/archive",

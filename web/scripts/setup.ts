@@ -44,6 +44,7 @@ if (!existing) {
   } else console.log("管理员已创建，使用环境变量提供的初始密码。");
 }
 if (
+  process.env.BLOG_TEST_FIXTURES === "1" &&
   !database
     .prepare("SELECT version FROM schema_migrations WHERE version=100")
     .get() &&
@@ -51,9 +52,9 @@ if (
 ) {
   database.transaction(() => {
     for (const file of fs
-      .readdirSync("content/posts")
+      .readdirSync("scripts/fixtures/posts")
       .filter((f) => f.endsWith(".md"))) {
-      const source = fs.readFileSync(`content/posts/${file}`, "utf8");
+      const source = fs.readFileSync(`scripts/fixtures/posts/${file}`, "utf8");
       const match = /^---\n([\s\S]*?)\n---\n([\s\S]*)$/.exec(source);
       if (!match) throw new Error(`Invalid front matter: ${file}`);
       const data = parse(match[1]);
@@ -92,7 +93,7 @@ if (
         );
     }
   })();
-  console.log("已导入三篇明确标注的示例文章，可在后台替换或删除。");
+  console.log("已导入隔离验收所需的文章样例。");
 }
 database
   .prepare("INSERT OR IGNORE INTO schema_migrations(version) VALUES (100)")
