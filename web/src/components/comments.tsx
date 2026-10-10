@@ -5,20 +5,17 @@ import { useRouter, usePathname } from "next/navigation";
 import { ThumbsUp } from "lucide-react";
 import { authClient } from "@/lib/auth-client";
 import { formatDate } from "@/lib/site";
+import type { PublicComment } from "@/lib/annotations";
 export function Comments({
   articleId,
   comments,
   target = "article",
+  onOpenThread,
 }: {
   articleId: string;
   target?: "article" | "discussion";
-  comments: {
-    id: string;
-    author: string;
-    content: string;
-    date: string;
-    votes: number;
-  }[];
+  comments: PublicComment[];
+  onOpenThread?: (id: string) => void;
 }) {
   const { data: session } = authClient.useSession();
   const [message, setMessage] = useState("");
@@ -72,24 +69,50 @@ export function Comments({
   }
   return (
     <section className="comments" aria-label="评论">
-      {comments.map((comment) => (
-        <article className="comment-row" key={comment.id}>
-          <header>
-            <strong>{comment.author}</strong>
-            <time>{formatDate(comment.date)}</time>
-          </header>
-          <p>{comment.content}</p>
-          {target === "article" && (
-            <button
-              className="text-button"
-              onClick={() => vote(comment.id)}
-              aria-label={`赞同 ${comment.author} 的评论`}
-            >
-              <ThumbsUp size={12} /> {comment.votes}
-            </button>
-          )}
-        </article>
-      ))}
+      {comments
+        .filter((comment) => !comment.parentId)
+        .map((comment) => (
+          <article
+            className="comment-row"
+            key={comment.id}
+            id={`comment-${comment.id}`}
+          >
+            <header>
+              <strong>{comment.author}</strong>
+              <time>{formatDate(comment.date)}</time>
+            </header>
+            {comment.anchor && onOpenThread && (
+              <button
+                className="comment-quote comment-quote-button"
+                onClick={() => onOpenThread(comment.id)}
+                aria-label="查看划线评论与原文"
+              >
+                {comment.anchor.exact}
+              </button>
+            )}
+            <p>{comment.content}</p>
+            {target === "article" && (
+              <button
+                className="text-button"
+                onClick={() => vote(comment.id)}
+                aria-label={`赞同 ${comment.author} 的评论`}
+              >
+                <ThumbsUp size={12} /> {comment.votes}
+              </button>
+            )}
+            {comment.anchor && onOpenThread && (
+              <button
+                className="text-button"
+                onClick={() => onOpenThread(comment.id)}
+              >
+                查看讨论
+                {comments.filter((reply) => reply.parentId === comment.id)
+                  .length > 0 &&
+                  ` · ${comments.filter((reply) => reply.parentId === comment.id).length} 条回复`}
+              </button>
+            )}
+          </article>
+        ))}
       {!comments.length && (
         <p className="muted">还没有评论，欢迎留下第一个想法。</p>
       )}

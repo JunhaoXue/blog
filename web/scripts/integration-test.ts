@@ -3,8 +3,18 @@ import { mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { spawn, spawnSync } from "node:child_process";
-import { randomBytes } from "node:crypto";
+import { createHash, randomBytes } from "node:crypto";
 import Database from "better-sqlite3";
+import {
+  articleText,
+  makeAnchor,
+  resolveAnchor,
+  annotationPlugin,
+} from "../src/lib/annotations";
+import { createElement } from "react";
+import { renderToStaticMarkup } from "react-dom/server";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 const directory = mkdtempSync(path.join(tmpdir(), "junhao-blog-test-"));
 const port = process.env.TEST_PORT || "3001";
 const base = `http://localhost:${port}`;
@@ -196,8 +206,23 @@ try {
     updated_at: string;
   };
   // Reproduce the pre-feature database, then migrate without losing existing articles.
+  db.prepare(
+    "INSERT INTO comments(id,article_id,user_id,author,content,approved,created_at) VALUES (?,?,?,?,?,?,?)",
+  ).run(
+    "legacy-comment",
+    example.id,
+    "legacy-user",
+    "Legacy",
+    "Existing comment",
+    0,
+    new Date(0).toISOString(),
+  );
+  db.prepare("INSERT INTO votes(user_id,comment_id) VALUES (?,?)").run(
+    "legacy-user",
+    "legacy-comment",
+  );
   db.exec(
-    "DELETE FROM schema_migrations WHERE version=3; ALTER TABLE articles DROP COLUMN github_records;",
+    "DELETE FROM schema_migrations WHERE version IN (3,6); ALTER TABLE articles DROP COLUMN github_records; DROP INDEX comments_parent; ALTER TABLE comments DROP COLUMN parent_id; ALTER TABLE comments DROP COLUMN anchor;",
   );
   const migrated = spawnSync(
     process.execPath,
@@ -205,6 +230,25 @@ try {
     { env, encoding: "utf8" },
   );
   ok("existing database upgrades", migrated.status, 0);
+  ok(
+    "annotation migration preserves ordinary comments",
+    db
+      .prepare(
+        "SELECT content,anchor,parent_id FROM comments WHERE id='legacy-comment'",
+      )
+      .get(),
+    { content: "Existing comment", anchor: null, parent_id: null },
+  );
+  ok(
+    "annotation migration preserves comment votes",
+    db
+      .prepare(
+        "SELECT COUNT(*) AS count FROM votes WHERE comment_id='legacy-comment'",
+      )
+      .get(),
+    { count: 1 },
+  );
+  db.prepare("DELETE FROM comments WHERE id='legacy-comment'").run();
   ok(
     "migration preserves existing article",
     (
@@ -725,6 +769,459 @@ try {
       }
     ).count,
     0,
+  );
+  const annotationMarkdown =
+    "## 阅读测试\n\n甲段 **共同词语** 后面是甲。\n\n乙段 共同词语 后面是乙。\n\n| 左列 | 右列 |\n| --- | --- |\n| 表格选字 | 测试 |\n\n[源文链接](https://example.test)";
+  const annotationArticle = await write(
+    "/api/admin/articles",
+    {
+      ...data,
+      slug: "annotation-test",
+      title: "Annotation fixture",
+      content: annotationMarkdown,
+      status: "published",
+    },
+    adminCookie,
+  );
+  ok("create annotation test article", annotationArticle.status, 200);
+  const annotationArticleId = (await annotationArticle.json()).id as string;
+  const renderedText = articleText(annotationMarkdown);
+  const stripMarkup = (html: string) =>
+    html
+      .replace(/<[^>]*>/g, "")
+      .replace(/&lt;/g, "<")
+      .replace(/&gt;/g, ">")
+      .replace(/&quot;/g, '"')
+      .replace(/&#x27;/g, "'")
+      .replace(/&amp;/g, "&");
+  const richSource =
+    annotationMarkdown +
+    '\n\n- [x] 任务\n\n`code & text`\n\n<script>alert("xss")</script>';
+  const richHtml = renderToStaticMarkup(
+    createElement(ReactMarkdown, {
+      remarkPlugins: [remarkGfm],
+      children: richSource,
+    }),
+  );
+  ok(
+    "selection offsets match actual renderer across tables, tasks and escaped HTML",
+    articleText(richSource),
+    stripMarkup(richHtml),
+  );
+  const overlappingHtml = renderToStaticMarkup(
+    createElement(ReactMarkdown, {
+      remarkPlugins: [remarkGfm],
+      rehypePlugins: [
+        annotationPlugin([
+          {
+            id: "cross-node",
+            start: renderedText.indexOf("甲段"),
+            end: renderedText.indexOf("乙段") + 8,
+          },
+          {
+            id: "overlap",
+            start: renderedText.indexOf("共同词语"),
+            end: renderedText.indexOf("共同词语") + 4,
+          },
+          {
+            id: "table-cell",
+            start: renderedText.indexOf("表格选字"),
+            end: renderedText.indexOf("表格选字") + 4,
+          },
+        ]),
+      ],
+      children: annotationMarkdown,
+    }),
+  );
+  ok(
+    "overlapping cross-block annotations preserve all rendered text",
+    stripMarkup(overlappingHtml),
+    renderedText,
+  );
+  ok(
+    "overlapping annotations retain both discussion references",
+    overlappingHtml.includes('data-comment-ids="cross-node,overlap"'),
+    true,
+  );
+  ok(
+    "table cell annotation renders safely",
+    overlappingHtml.includes('data-comment-ids="table-cell">表格选字</mark>'),
+    true,
+  );
+  const revision = createHash("sha256")
+    .update(annotationMarkdown)
+    .digest("hex");
+  const quoteStart = renderedText.lastIndexOf("共同词语");
+  const anchor = makeAnchor(renderedText, quoteStart, quoteStart + 4, revision);
+  const annotationBody = {
+    articleId: annotationArticleId,
+    content: "Quoted thought",
+    anchor,
+  };
+  const ageComments = () =>
+    db
+      .prepare("UPDATE comments SET created_at=? WHERE user_id IN (?,?)")
+      .run(
+        new Date(0).toISOString(),
+        reader.user.id,
+        (
+          db
+            .prepare("SELECT id FROM user WHERE email='admin@example.test'")
+            .get() as { id: string }
+        ).id,
+      );
+  ageComments();
+  ok(
+    "anonymous annotation blocked",
+    (await write("/api/comments", annotationBody)).status,
+    401,
+  );
+  ok(
+    "cross-origin annotation blocked",
+    (
+      await write(
+        "/api/comments",
+        annotationBody,
+        readerCookie,
+        "POST",
+        "https://untrusted.example",
+      )
+    ).status,
+    403,
+  );
+  ok(
+    "fabricated quote rejected",
+    (
+      await write(
+        "/api/comments",
+        { ...annotationBody, anchor: { ...anchor, exact: "不存在的原文" } },
+        readerCookie,
+      )
+    ).status,
+    400,
+  );
+  ok(
+    "incorrect quote context rejected",
+    (
+      await write(
+        "/api/comments",
+        { ...annotationBody, anchor: { ...anchor, prefix: "forged" } },
+        readerCookie,
+      )
+    ).status,
+    400,
+  );
+  ok(
+    "incorrect quote position rejected",
+    (
+      await write(
+        "/api/comments",
+        { ...annotationBody, anchor: { ...anchor, start: quoteStart + 1 } },
+        readerCookie,
+      )
+    ).status,
+    400,
+  );
+  ok(
+    "outdated article revision rejected",
+    (
+      await write(
+        "/api/comments",
+        { ...annotationBody, anchor: { ...anchor, revision: "0".repeat(64) } },
+        readerCookie,
+      )
+    ).status,
+    409,
+  );
+  ok(
+    "oversized quote rejected",
+    (
+      await write(
+        "/api/comments",
+        { ...annotationBody, anchor: { ...anchor, exact: "字".repeat(2001) } },
+        readerCookie,
+      )
+    ).status,
+    400,
+  );
+  const quoted = await write("/api/comments", annotationBody, readerCookie);
+  ok("reader annotation accepted", quoted.status, 200);
+  const quotedResult = await quoted.json();
+  ok("reader annotation awaits approval", quotedResult.approved, false);
+  ok(
+    "quote and occurrence persisted",
+    JSON.parse(
+      (
+        db
+          .prepare("SELECT anchor FROM comments WHERE id=?")
+          .get(quotedResult.id) as { anchor: string }
+      ).anchor,
+    ),
+    anchor,
+  );
+  let annotationPage = await (
+    await fetch(base + "/posts/annotation-test")
+  ).text();
+  ok(
+    "pending annotations have no public underline",
+    annotationPage.includes('class="annotation-mark"'),
+    false,
+  );
+  ok(
+    "pending annotation content private",
+    annotationPage.includes("Quoted thought"),
+    false,
+  );
+  ok(
+    "pending annotation cannot be replied to",
+    (
+      await write(
+        "/api/comments",
+        {
+          articleId: annotationArticleId,
+          parentId: quotedResult.id,
+          content: "Hidden reply",
+        },
+        adminCookie,
+      )
+    ).status,
+    404,
+  );
+  await write(
+    "/api/admin/manage",
+    { type: "comment", id: quotedResult.id, approved: true },
+    adminCookie,
+  );
+  annotationPage = await (await fetch(base + "/posts/annotation-test")).text();
+  ok(
+    "approved quote underlines correct repeated occurrence",
+    annotationPage.includes(`甲段 <strong>共同词语</strong> 后面是甲。`) &&
+      annotationPage.includes(`乙段 <mark`) &&
+      annotationPage.includes(`data-comment-ids="${quotedResult.id}"`),
+    true,
+  );
+  ok(
+    "approved quoted comment public",
+    annotationPage.includes("Quoted thought"),
+    true,
+  );
+  ok(
+    "admin moderation displays quoted context",
+    (
+      await (
+        await fetch(base + "/admin/comments", {
+          headers: { cookie: adminCookie },
+        })
+      ).text()
+    ).includes('class="comment-quote"'),
+    true,
+  );
+  ok(
+    "annotation and reply cannot be mixed",
+    (
+      await write(
+        "/api/comments",
+        { ...annotationBody, parentId: quotedResult.id },
+        readerCookie,
+      )
+    ).status,
+    400,
+  );
+  ok(
+    "reply cannot target another article",
+    (
+      await write(
+        "/api/comments",
+        { articleId: id, parentId: quotedResult.id, content: "Wrong article" },
+        adminCookie,
+      )
+    ).status,
+    404,
+  );
+  ok(
+    "annotation spam throttled",
+    (await write("/api/comments", annotationBody, readerCookie)).status,
+    429,
+  );
+  ageComments();
+  const quotedReply = await write(
+    "/api/comments",
+    {
+      articleId: annotationArticleId,
+      parentId: quotedResult.id,
+      content: "Quoted reply",
+    },
+    readerCookie,
+  );
+  ok("reader thread reply accepted", quotedReply.status, 200);
+  const quotedReplyId = (await quotedReply.json()).id as string;
+  ok(
+    "pending thread reply private",
+    (await (await fetch(base + "/posts/annotation-test")).text()).includes(
+      "Quoted reply",
+    ),
+    false,
+  );
+  await write(
+    "/api/admin/manage",
+    { type: "comment", id: quotedReplyId, approved: true },
+    adminCookie,
+  );
+  ok(
+    "approved reply included in discussion",
+    (await (await fetch(base + "/posts/annotation-test")).text()).includes(
+      "Quoted reply",
+    ),
+    true,
+  );
+  ok(
+    "nested reply chain rejected",
+    (
+      await write(
+        "/api/comments",
+        {
+          articleId: annotationArticleId,
+          parentId: quotedReplyId,
+          content: "Nested",
+        },
+        adminCookie,
+      )
+    ).status,
+    404,
+  );
+  await write(
+    "/api/admin/manage",
+    { type: "comment", id: quotedResult.id, approved: false },
+    adminCookie,
+  );
+  annotationPage = await (await fetch(base + "/posts/annotation-test")).text();
+  ok(
+    "hiding parent hides underlines and entire thread",
+    [
+      annotationPage.includes('class="annotation-mark"'),
+      annotationPage.includes("Quoted thought"),
+      annotationPage.includes("Quoted reply"),
+    ],
+    [false, false, false],
+  );
+  ok(
+    "hidden parent blocks replies",
+    (
+      await write(
+        "/api/comments",
+        {
+          articleId: annotationArticleId,
+          parentId: quotedResult.id,
+          content: "Hidden",
+        },
+        adminCookie,
+      )
+    ).status,
+    404,
+  );
+  ok(
+    "hidden thread cannot receive votes",
+    (await write("/api/comments", { id: quotedReplyId }, readerCookie, "PATCH"))
+      .status,
+    404,
+  );
+  await write(
+    "/api/admin/manage",
+    { type: "comment", id: quotedResult.id, approved: true },
+    adminCookie,
+  );
+  const shifted = "新增开头\n\n" + annotationMarkdown;
+  db.prepare("UPDATE articles SET content=? WHERE id=?").run(
+    shifted,
+    annotationArticleId,
+  );
+  ok(
+    "submitted anchor becomes stale after edit",
+    (await write("/api/comments", annotationBody, readerCookie)).status,
+    409,
+  );
+  annotationPage = await (await fetch(base + "/posts/annotation-test")).text();
+  ok(
+    "unique context reattaches after preceding edit",
+    annotationPage.includes(`data-comment-ids="${quotedResult.id}"`),
+    true,
+  );
+  ok(
+    "repeated quote resolves by context",
+    resolveAnchor(articleText(shifted), anchor)?.start,
+    articleText(shifted).lastIndexOf("共同词语"),
+  );
+  const identical = `${"前".repeat(64)}重复${"后".repeat(64)}\n`.repeat(2);
+  const ambiguous = makeAnchor(identical, 64, 66, revision);
+  ok(
+    "unchanged revision preserves exact occurrence",
+    resolveAnchor(identical, ambiguous, revision)?.start,
+    64,
+  );
+  ok(
+    "ambiguous edited occurrence never moves silently",
+    resolveAnchor(identical, ambiguous, "changed"),
+    null,
+  );
+  db.prepare("UPDATE articles SET content=? WHERE id=?").run(
+    "原文已替换",
+    annotationArticleId,
+  );
+  annotationPage = await (await fetch(base + "/posts/annotation-test")).text();
+  ok(
+    "removed quote retains discussion without underline",
+    [
+      annotationPage.includes('class="annotation-mark"'),
+      annotationPage.includes("Quoted thought"),
+    ],
+    [false, true],
+  );
+  db.prepare("UPDATE articles SET status='draft' WHERE id=?").run(
+    annotationArticleId,
+  );
+  ok(
+    "private article blocks annotation",
+    (await write("/api/comments", annotationBody, readerCookie)).status,
+    404,
+  );
+  ok(
+    "private article blocks thread votes",
+    (
+      await write(
+        "/api/comments",
+        { id: quotedResult.id },
+        readerCookie,
+        "PATCH",
+      )
+    ).status,
+    404,
+  );
+  db.prepare(
+    "UPDATE articles SET status='published',published_at=? WHERE id=?",
+  ).run(new Date(Date.now() + 86400000).toISOString(), annotationArticleId);
+  ok(
+    "future article blocks annotation",
+    (await write("/api/comments", annotationBody, readerCookie)).status,
+    404,
+  );
+  await write(
+    "/api/admin/manage",
+    { type: "comment", id: quotedResult.id },
+    adminCookie,
+    "DELETE",
+  );
+  ok(
+    "deleting root cascades thread replies",
+    db
+      .prepare("SELECT COUNT(*) AS count FROM comments WHERE article_id=?")
+      .get(annotationArticleId),
+    { count: 0 },
+  );
+  await write(
+    "/api/admin/articles",
+    { id: annotationArticleId },
+    adminCookie,
+    "DELETE",
   );
   ok(
     "cannot delete category containing articles",

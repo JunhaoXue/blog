@@ -1,5 +1,6 @@
 import { database } from "./database";
 import type { GitHubRecord } from "./github-records";
+import type { PublicComment } from "./annotations";
 export type Post = {
   id: string;
   slug: string;
@@ -64,17 +65,18 @@ export function getCategories() {
   }[];
 }
 export function getComments(articleId: string) {
-  return database
+  const rows = database
     .prepare(
-      `SELECT c.id, c.author, c.content, c.created_at AS date, COUNT(v.user_id) AS votes
+      `SELECT c.id, c.author, c.content, c.anchor, c.parent_id AS parentId, c.created_at AS date, COUNT(v.user_id) AS votes
     FROM comments c LEFT JOIN votes v ON v.comment_id=c.id WHERE c.article_id=? AND c.approved=1
+    AND (c.parent_id IS NULL OR EXISTS (SELECT 1 FROM comments p WHERE p.id=c.parent_id AND p.approved=1))
     GROUP BY c.id ORDER BY c.created_at`,
     )
-    .all(articleId) as {
-    id: string;
-    author: string;
-    content: string;
-    date: string;
-    votes: number;
-  }[];
+    .all(articleId) as (Omit<PublicComment, "anchor"> & {
+    anchor: string | null;
+  })[];
+  return rows.map((row): PublicComment => ({
+    ...row,
+    anchor: row.anchor ? JSON.parse(row.anchor) : null,
+  }));
 }

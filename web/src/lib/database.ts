@@ -88,6 +88,18 @@ export function migrateBlogDatabase() {
         CREATE INDEX IF NOT EXISTS discussion_likes_discussion ON discussion_likes(discussion_id);
         INSERT OR IGNORE INTO schema_migrations(version) VALUES (5);
       `);
+      if (
+        !database
+          .prepare("SELECT version FROM schema_migrations WHERE version=6")
+          .get()
+      ) {
+        database.exec(`
+          ALTER TABLE comments ADD COLUMN anchor TEXT;
+          ALTER TABLE comments ADD COLUMN parent_id TEXT REFERENCES comments(id) ON DELETE CASCADE;
+          CREATE INDEX comments_parent ON comments(parent_id, approved, created_at);
+          INSERT INTO schema_migrations(version) VALUES (6);
+        `);
+      }
     })
     .immediate();
 }

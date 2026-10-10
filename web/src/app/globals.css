@@ -927,6 +927,138 @@ label {
   font-size: 12px;
   color: var(--muted);
 }
+.annotation-help {
+  font-size: 12px;
+  margin: 0 0 20px;
+}
+.annotation-mark {
+  color: inherit;
+  background: transparent;
+  text-decoration: underline;
+  text-decoration-color: var(--muted);
+  text-decoration-thickness: 2px;
+  text-underline-offset: 5px;
+  cursor: pointer;
+  border-radius: 2px;
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+}
+.annotation-mark:hover,
+.annotation-mark:focus-visible {
+  background: var(--panel);
+  text-decoration-color: var(--ink);
+}
+.annotation-toolbar {
+  position: fixed;
+  z-index: 30;
+  max-width: calc(100vw - 32px);
+  border-radius: 24px;
+  background: var(--bg);
+  box-shadow: 0 4px 24px #0002;
+  font-size: 13px;
+}
+.annotation-toolbar > span {
+  display: block;
+  padding: 12px 16px;
+}
+.annotation-toolbar button {
+  min-height: 44px;
+  color: var(--ink);
+}
+.annotation-dialog {
+  position: fixed;
+  inset: 24px 24px 24px auto;
+  margin: 0;
+  width: 440px;
+  max-width: calc(100vw - 48px);
+  max-height: calc(100dvh - 48px);
+  padding: 0;
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  background: var(--bg);
+  color: var(--ink);
+  box-shadow: 0 16px 64px #0002;
+  overflow: hidden;
+}
+.annotation-dialog[open] {
+  display: flex;
+  flex-direction: column;
+}
+.annotation-dialog::backdrop {
+  background: #0003;
+}
+.annotation-dialog-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 12px 20px;
+  border-bottom: 1px solid var(--line);
+}
+.annotation-dialog-header strong {
+  font-size: 15px;
+  font-weight: 600;
+}
+.annotation-dialog-header .icon-button {
+  min-width: 44px;
+  min-height: 44px;
+}
+.annotation-dialog-body {
+  min-height: 0;
+  padding: 20px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+}
+.comment-quote {
+  display: block;
+  margin: 12px 0;
+  padding: 12px 16px;
+  background: var(--panel);
+  border: 0;
+  border-inline-start: 3px solid var(--muted);
+  border-radius: 0 12px 12px 0;
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.7;
+  text-align: start;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  max-height: 180px;
+  overflow-y: auto;
+}
+.comment-quote-button {
+  width: 100%;
+  cursor: pointer;
+}
+.comment-quote-button:hover {
+  color: var(--ink);
+}
+.comment-row .text-button {
+  min-height: 44px;
+  margin-right: 12px;
+}
+.annotation-thread + .annotation-thread {
+  margin-top: 24px;
+  border-top: 1px solid var(--line);
+  padding-top: 12px;
+}
+.annotation-thread .comment-row {
+  padding: 16px 0;
+}
+.annotation-thread .comment-row + .comment-row {
+  border-top: 1px solid var(--line);
+}
+.annotation-stale {
+  font-size: 13px;
+}
+.annotation-compose textarea {
+  min-height: 120px;
+  font-size: 16px;
+}
+.annotation-compose .button {
+  min-height: 44px;
+}
 .pagination {
   display: flex;
   justify-content: center;
@@ -1319,6 +1451,82 @@ label {
   .comment-form > div {
     align-items: flex-start;
     flex-direction: column;
+  }
+  .reading-shell {
+    padding-bottom: calc(48px + env(safe-area-inset-bottom));
+  }
+  .reading-shell .article-header {
+    margin-bottom: 24px;
+  }
+  .prose {
+    line-height: 1.8;
+    letter-spacing: 0;
+    overflow-wrap: anywhere;
+  }
+  .prose p {
+    margin-bottom: 20px;
+  }
+  .prose :is(ol, ul) {
+    padding-inline-start: 22px;
+  }
+  .prose li {
+    padding-inline-start: 2px;
+  }
+  .prose :is(ol, ul) :is(ol, ul) :is(ol, ul) {
+    padding-inline-start: 16px;
+  }
+  .prose blockquote {
+    padding-inline-start: 12px;
+  }
+  .prose :is(table, pre) {
+    overscroll-behavior-x: contain;
+    -webkit-overflow-scrolling: touch;
+  }
+  .prose table {
+    scrollbar-width: thin;
+    padding-bottom: 8px;
+  }
+  .prose :is(th, td) {
+    min-width: 156px;
+    padding: 12px 8px;
+  }
+  .back-link,
+  .post-action-button,
+  .reading-shell .button {
+    min-height: 44px;
+  }
+  .back-link {
+    display: inline-flex;
+    align-items: center;
+  }
+  .comment-form textarea,
+  .post-share-panel input {
+    font-size: 16px;
+  }
+  .annotation-toolbar {
+    left: 16px !important;
+    right: 16px;
+    top: auto !important;
+    bottom: calc(16px + env(safe-area-inset-bottom));
+    width: fit-content;
+    margin: 0 auto;
+  }
+  .annotation-dialog {
+    inset: auto 0 0;
+    bottom: var(--annotation-keyboard-inset, 0px);
+    width: 100%;
+    max-width: 100%;
+    max-height: calc(var(--annotation-viewport-height, 100dvh) * 0.85);
+    border-radius: 20px 20px 0 0;
+    border-bottom: 0;
+  }
+  .annotation-dialog-body {
+    padding: 20px 20px calc(20px + env(safe-area-inset-bottom));
+    scrollbar-gutter: auto;
+  }
+  .annotation-compose > div {
+    flex-direction: row;
+    align-items: center;
   }
   .account-menu {
     gap: 6px;

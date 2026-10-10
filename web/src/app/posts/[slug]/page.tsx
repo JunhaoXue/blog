@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import ReactMarkdown from "react-markdown";
-import remarkGfm from "remark-gfm";
+import { createHash } from "node:crypto";
 import { getPost, getComments } from "@/lib/content";
 import { formatDate, site } from "@/lib/site";
-import { Comments } from "@/components/comments";
+import { ArticleReader } from "@/components/article-reader";
+import { articleText } from "@/lib/annotations";
 import { GitHubRecords } from "@/components/github-records";
 import { PostActions } from "@/components/post-actions";
 import { getPostReactions } from "@/lib/post-reactions";
@@ -63,32 +63,34 @@ export default async function Article({
           </div>
         )}
       </header>
-      <article className="prose">
-        <ReactMarkdown remarkPlugins={[remarkGfm]}>
-          {post.content}
-        </ReactMarkdown>
-      </article>
-      <div className="article-end">
-        <div className="tags">
-          {post.tags.map((tag) => (
-            <Link key={tag} href={`/?tag=${encodeURIComponent(tag)}`}>
-              # {tag}
-            </Link>
-          ))}
+      <ArticleReader
+        articleId={post.id}
+        content={post.content}
+        text={articleText(post.content)}
+        revision={createHash("sha256").update(post.content).digest("hex")}
+        comments={getComments(post.id)}
+      >
+        <div className="article-end">
+          <div className="tags">
+            {post.tags.map((tag) => (
+              <Link key={tag} href={`/?tag=${encodeURIComponent(tag)}`}>
+                # {tag}
+              </Link>
+            ))}
+          </div>
         </div>
-      </div>
-      <PostActions
-        key={session?.user.id || "guest"}
-        target="article"
-        id={post.id}
-        path={`/posts/${post.slug}`}
-        title={post.title}
-        signedIn={Boolean(session)}
-        initialCount={reactions.count}
-        initialLiked={reactions.liked}
-      />
-      <GitHubRecords records={post.githubRecords} />
-      <Comments articleId={post.id} comments={getComments(post.id)} />
+        <PostActions
+          key={session?.user.id || "guest"}
+          target="article"
+          id={post.id}
+          path={`/posts/${post.slug}`}
+          title={post.title}
+          signedIn={Boolean(session)}
+          initialCount={reactions.count}
+          initialLiked={reactions.liked}
+        />
+        <GitHubRecords records={post.githubRecords} />
+      </ArticleReader>
     </div>
   );
 }
