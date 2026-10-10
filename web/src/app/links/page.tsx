@@ -15,7 +15,7 @@ export default function Links() {
       <div className="links-grid">
         {links.map((link) => (
           <a
-            className="link-card"
+            className="link-card surface-card"
             key={link.id}
             href={link.url}
             target="_blank"

@@ -24,7 +24,7 @@ export function GitHubRecords({ records }: { records: GitHubRecord[] }) {
             const details = describeGitHubRecord(record.url);
             if (!details) return null;
             return (
-              <li key={details.url}>
+              <li key={details.url} className="surface-card">
                 <a href={details.url} target="_blank" rel="noopener noreferrer">
                   <span className="github-record-kind">{details.kind}</span>
                   <span className="github-record-details">

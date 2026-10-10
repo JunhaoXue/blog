@@ -21,7 +21,7 @@ export default function Discussions() {
       <DiscussionForm />
       {discussions.map((item) => (
         <Link
-          className="discussion-row"
+          className="discussion-row surface-card"
           key={item.id}
           href={`/discussions/${item.id}`}
         >

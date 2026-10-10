@@ -6,6 +6,12 @@
   --line: #e7e7e7;
   --accent: #e5e5e5;
   --error: #b42318;
+  --card-radius: 20px;
+  --card-padding: 24px;
+  --card-gap: 16px;
+  --card-bg: #ffffff;
+  --card-hover-bg: #fafafa;
+  --card-hover-line: #cccccc;
   color-scheme: light;
 }
 :root[data-theme="dark"] {
@@ -16,6 +22,9 @@
   --line: #3b3b3b;
   --accent: #454545;
   --error: #ffaaa3;
+  --card-bg: #262626;
+  --card-hover-bg: #2c2c2c;
+  --card-hover-line: #555555;
   color-scheme: dark;
 }
 * {
@@ -247,7 +256,32 @@ svg {
   display: flex;
   align-items: flex-start;
   gap: 16px;
-  padding: 28px 0;
+}
+.surface-card {
+  min-width: 0;
+  padding: var(--card-padding);
+  border: 1px solid var(--line);
+  border-radius: var(--card-radius);
+  background: var(--card-bg);
+  transition:
+    background-color 150ms ease,
+    border-color 150ms ease;
+}
+.surface-card:focus-within {
+  border-color: var(--muted);
+}
+@media (hover: hover) {
+  a.surface-card:hover,
+  .surface-card:has(a:hover) {
+    color: var(--ink);
+    background: var(--card-hover-bg);
+    border-color: var(--card-hover-line);
+  }
+}
+.post-list {
+  display: grid;
+  gap: var(--card-gap);
+  margin-top: 24px;
 }
 .post-content {
   flex: 1;
@@ -271,6 +305,7 @@ svg {
   font-weight: 600;
   letter-spacing: -0.3px;
   margin: 8px 0;
+  overflow-wrap: anywhere;
 }
 .post-content p {
   font-size: 14px;
@@ -447,6 +482,8 @@ svg {
   margin-bottom: 12px;
 }
 .github-records-list {
+  display: grid;
+  gap: 12px;
   list-style: none;
   padding: 0;
   margin: 0;
@@ -455,7 +492,7 @@ svg {
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 14px 0;
+  padding: 0;
 }
 .github-records-list a:hover {
   text-decoration: underline;
@@ -609,11 +646,7 @@ label {
 .links-grid {
   display: grid;
   grid-template-columns: 1fr;
-  gap: 0;
-}
-.link-card {
-  padding: 20px 0;
-  border-bottom: 1px solid var(--line);
+  gap: var(--card-gap);
 }
 .link-card h2 {
   font-size: 18px;
@@ -760,11 +793,6 @@ label {
   gap: 16px;
   margin: 28px 0;
 }
-.stat-card {
-  padding: 20px;
-  background: var(--panel);
-  border-radius: 12px;
-}
 .stat-card > span {
   font-size: 12px;
   color: var(--muted);
@@ -886,18 +914,12 @@ label {
   gap: 16px;
   margin: 24px 0;
 }
-.media-card {
-  padding: 12px;
-  border: 1px solid var(--line);
-  border-radius: 12px;
-  min-width: 0;
-}
 .media-card img {
   width: 100%;
   height: 160px;
   object-fit: contain;
   background: var(--panel);
-  border-radius: 8px;
+  border-radius: 12px;
 }
 .media-card p {
   font-size: 12px;
@@ -909,7 +931,7 @@ label {
 }
 .discussion-row {
   display: block;
-  padding: 24px 0;
+  margin-top: var(--card-gap);
 }
 .discussion-row h2 {
   font-size: 20px;
@@ -967,6 +989,9 @@ label {
   }
 }
 @media (max-width: 720px) {
+  :root {
+    --card-padding: 20px;
+  }
   .header-inner {
     padding: 16px 20px;
     flex-wrap: wrap;
@@ -1013,7 +1038,6 @@ label {
     padding: 6px 12px;
   }
   .post-row {
-    padding: 24px 0;
     gap: 12px;
   }
   .post-content h2 {
@@ -1080,9 +1104,6 @@ label {
   .stat-grid {
     gap: 12px;
   }
-  .stat-card {
-    padding: 16px;
-  }
   .stat-card > strong {
     font-size: 26px;
   }
@@ -1109,6 +1130,9 @@ label {
   }
 }
 @media (prefers-reduced-motion: reduce) {
+  .surface-card {
+    transition: none;
+  }
   html {
     scroll-behavior: auto;
   }

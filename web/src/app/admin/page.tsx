@@ -31,7 +31,7 @@ export default async function Dashboard() {
       </div>
       <div className="stat-grid">
         {stats.map(([label, value]) => (
-          <div className="stat-card" key={label}>
+          <div className="stat-card surface-card" key={label}>
             <span>{label}</span>
             <strong>{value}</strong>
           </div>

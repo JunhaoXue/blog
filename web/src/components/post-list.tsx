@@ -14,7 +14,7 @@ export function PostList({ posts }: { posts: Post[] }) {
   return (
     <div className="post-list">
       {posts.map((post) => (
-        <article className="post-row" key={post.id}>
+        <article className="post-row surface-card" key={post.id}>
           <div className="post-content">
             <div className="post-meta">
               <time dateTime={post.date}>{formatDate(post.date)}</time>

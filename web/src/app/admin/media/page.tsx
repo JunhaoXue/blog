@@ -20,7 +20,7 @@ export default async function Media() {
       <MediaUpload />
       <div className="media-grid">
         {images.map((image) => (
-          <div className="media-card" key={image.id}>
+          <div className="media-card surface-card" key={image.id}>
             <img src={`/api/media/${image.id}`} alt="已上传的文章图片" />
             <p>{Math.round(image.size / 1024)} KB</p>
             <label className="sr-only" htmlFor={image.id}>
