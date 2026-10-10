@@ -435,15 +435,18 @@ svg {
   width: 140px;
 }
 .article-header {
-  padding-bottom: 24px;
-  margin-bottom: 16px;
+  margin-bottom: 32px;
 }
 .article-header h1 {
+  font-size: 26px;
+  line-height: 1.5;
+  letter-spacing: -0.6px;
   margin-top: 12px;
 }
 .article-header > p {
   font-size: 15px;
   color: var(--muted);
+  margin-bottom: 0;
 }
 .notice {
   font-size: 13px;
@@ -453,53 +456,119 @@ svg {
   margin-top: 20px;
 }
 .prose {
+  --document-text: #282828;
+  --document-quote-line: #cdcdcd;
+  /* 依据官方文档 prose-content 的正文参数；统一阅读页与后台预览。 */
+  color: var(--document-text);
   font-size: 16px;
-  line-height: 1.9;
-  overflow-wrap: anywhere;
+  line-height: 1.6;
+  letter-spacing: -0.16px;
+  overflow-wrap: break-word;
+}
+:root[data-theme="dark"] .prose {
+  --document-text: var(--ink);
+  --document-quote-line: var(--line);
+}
+.prose :is(h1, h2, h3, h4, h5, h6) {
+  color: var(--ink);
+  font-weight: 600;
+  scroll-margin-top: 96px;
+}
+.prose h1 {
+  font-size: 26px;
+  line-height: 1.5;
+  letter-spacing: -0.6px;
+  margin: 0 0 24px;
 }
 .prose h2 {
-  font-size: 21px;
-  font-weight: 600;
-  margin: 32px 0 16px;
-  line-height: 1.5;
+  font-size: 20px;
+  line-height: 1.3;
+  margin: 40px 0 20px;
 }
 .prose h3 {
   font-size: 18px;
-  font-weight: 600;
-  margin: 24px 0 12px;
+  line-height: 1.333333;
+  margin: 28.8px 0 10.8px;
+}
+/* 真实笔记使用四级标题，旧规则未覆盖，导致浏览器默认粗体和间距混入正文。 */
+.prose :is(h4, h5, h6) {
+  font-size: 18px;
+  line-height: 1.444444;
+  margin: 27px 0 9px;
 }
 .prose p {
-  margin-bottom: 20px;
+  margin: 0 0 16px;
+}
+.prose :is(ol, ul) {
+  margin: 0 0 24px;
+  padding-inline-start: 26px;
+}
+.prose li {
+  margin: 0;
+  padding: 0 0 0 6px;
+}
+.prose li::marker {
+  color: var(--muted);
+  font-weight: 400;
+}
+.prose li > :is(ol, ul) {
+  margin: 12px 0;
+}
+.prose strong {
+  font-weight: 600;
+  color: var(--ink);
 }
 .prose a {
+  color: var(--ink);
+  font-weight: 500;
   text-decoration: underline;
+  text-decoration-color: var(--muted);
   text-underline-offset: 4px;
+  overflow-wrap: anywhere;
+}
+.prose a:hover {
+  text-decoration-color: currentColor;
 }
 .prose blockquote {
-  border-left: 2px solid var(--line);
-  margin: 24px 0;
-  padding: 4px 20px;
-  color: var(--muted);
+  border-inline-start: 4px solid var(--document-quote-line);
+  margin: 25.6px 0;
+  padding-inline-start: 16px;
+  color: var(--document-text);
+  font-style: normal;
 }
-.prose blockquote p:last-child {
+.prose blockquote > :last-child,
+.prose > :last-child {
   margin-bottom: 0;
 }
+.prose > :first-child {
+  margin-top: 0;
+}
 .prose pre {
-  overflow: auto;
-  padding: 20px;
+  max-width: 100%;
+  overflow-x: auto;
+  padding: 12px 16px;
+  margin: 20px 0;
   background: var(--panel);
-  border-radius: 12px;
-  font-size: 13px;
-  line-height: 1.8;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  font-size: 14px;
+  line-height: 20px;
+  letter-spacing: normal;
+  overflow-wrap: normal;
 }
 .prose code {
-  font-family: Menlo, Consolas, monospace;
-  font-size: 0.86em;
+  font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+  font-size: 0.875em;
   background: var(--panel);
-  padding: 2px 5px;
-  border-radius: 4px;
+  padding: 2px 8px;
+  border-radius: 6px;
+  box-shadow: inset 0 0 0 1px var(--line);
 }
 .prose pre code {
+  font-size: inherit;
+  background: transparent;
+  box-shadow: none;
+  border-radius: 0;
   padding: 0;
 }
 .prose table {
@@ -508,30 +577,48 @@ svg {
   display: block;
   overflow-x: auto;
   font-size: 14px;
-  margin: 24px 0;
+  line-height: 1.714286;
+  margin: 28px 0;
 }
 /* 导入真实笔记后，手机上的三／四列表格被压到每列仅数个字；
    保留最小列宽，利用表格现有的横向滚动容器承载完整内容。 */
 .prose td,
 .prose th {
-  border: 1px solid var(--line);
-  padding: 10px 16px;
-  text-align: left;
+  border: 0;
+  border-bottom: 1px solid var(--line);
+  padding: 8px;
+  text-align: start;
   min-width: 160px;
   vertical-align: top;
+}
+.prose th {
+  color: var(--ink);
+  font-weight: 600;
+  border-bottom-color: var(--document-quote-line);
+}
+.prose :is(th, td):first-child {
+  padding-inline-start: 0;
+}
+.prose :is(th, td):last-child {
+  padding-inline-end: 0;
+}
+.prose tbody tr:last-child td {
+  border-bottom: 0;
+}
+.prose table p {
+  margin: 0;
 }
 .prose img {
   max-width: 100%;
   height: auto;
-  border-radius: 12px;
+  border-radius: 8px;
+  border: 1px solid var(--line);
+  margin: 32px 0;
 }
 .prose hr {
   border: 0;
   border-top: 1px solid var(--line);
-  margin: 28px 0;
-}
-.prose li {
-  padding: 3px 0;
+  margin: 48px 0;
 }
 .github-records {
   padding: 24px 0;
@@ -1174,9 +1261,6 @@ label {
   }
   .article-header > p {
     font-size: 14px;
-  }
-  .prose {
-    font-size: 15px;
   }
   .archive-row {
     gap: 12px;
