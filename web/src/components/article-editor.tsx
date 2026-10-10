@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import type { Post } from "@/lib/content";
+import { GitHubRecords } from "@/components/github-records";
+import type { GitHubRecord } from "@/lib/github-records";
 export function ArticleEditor({
   post,
   categories,
@@ -17,6 +19,9 @@ export function ArticleEditor({
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
   const [dirty, setDirty] = useState(false);
+  const [githubRecords, setGithubRecords] = useState<GitHubRecord[]>(
+    post?.githubRecords || [],
+  );
   const router = useRouter();
   useEffect(() => {
     const handler = (event: BeforeUnloadEvent) => {
@@ -48,6 +53,7 @@ export function ArticleEditor({
         status: data.get("status"),
         date: new Date(String(data.get("date"))).toISOString(),
         updatedAt: post?.updatedAt,
+        githubRecords,
       };
       const response = await fetch("/api/admin/articles", {
         method: "POST",
@@ -203,6 +209,86 @@ export function ArticleEditor({
             <ReactMarkdown remarkPlugins={[remarkGfm]}>{content}</ReactMarkdown>
           </div>
         )}
+        <fieldset className="github-editor">
+          <legend>GitHub 记录</legend>
+          <p className="muted">
+            关联这篇文章的仓库、提交或 PR，最多 12 条；按添加顺序展示。
+          </p>
+          {githubRecords.map((record, index) => (
+            <div className="github-editor-row" key={index}>
+              <div className="editor-grid">
+                <div className="form-field">
+                  <label htmlFor={`github-title-${index}`}>
+                    记录 {index + 1} · 说明（选填）
+                  </label>
+                  <input
+                    id={`github-title-${index}`}
+                    value={record.title}
+                    maxLength={120}
+                    placeholder="例如：实现文章评论功能"
+                    onChange={(event) =>
+                      setGithubRecords((records) =>
+                        records.map((item, i) =>
+                          i === index
+                            ? { ...item, title: event.target.value }
+                            : item,
+                        ),
+                      )
+                    }
+                  />
+                </div>
+                <div className="form-field">
+                  <label htmlFor={`github-url-${index}`}>GitHub 地址</label>
+                  <input
+                    id={`github-url-${index}`}
+                    type="url"
+                    value={record.url}
+                    required
+                    maxLength={500}
+                    placeholder="https://github.com/JunhaoXue/blog"
+                    onChange={(event) =>
+                      setGithubRecords((records) =>
+                        records.map((item, i) =>
+                          i === index
+                            ? { ...item, url: event.target.value }
+                            : item,
+                        ),
+                      )
+                    }
+                  />
+                </div>
+              </div>
+              <button
+                type="button"
+                className="small-link"
+                aria-label={`移除 GitHub 记录 ${index + 1}`}
+                onClick={() => {
+                  setGithubRecords((records) =>
+                    records.filter((_, i) => i !== index),
+                  );
+                  setDirty(true);
+                }}
+              >
+                移除记录
+              </button>
+            </div>
+          ))}
+          <button
+            type="button"
+            className="button secondary"
+            disabled={githubRecords.length >= 12}
+            onClick={() => {
+              setGithubRecords((records) => [
+                ...records,
+                { title: "", url: "" },
+              ]);
+              setDirty(true);
+            }}
+          >
+            + 添加 GitHub 记录
+          </button>
+          {preview && <GitHubRecords records={githubRecords} />}
+        </fieldset>
         <div className="editor-actions">
           <label htmlFor="status">发布状态</label>
           <select

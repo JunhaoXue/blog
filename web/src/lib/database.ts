@@ -52,6 +52,18 @@ export function migrateBlogDatabase() {
     CREATE INDEX IF NOT EXISTS replies_discussion ON replies(discussion_id, approved, created_at);
     INSERT OR IGNORE INTO schema_migrations(version) VALUES (1), (2);
   `);
+      if (
+        !database
+          .prepare("SELECT version FROM schema_migrations WHERE version=3")
+          .get()
+      ) {
+        database.exec(
+          "ALTER TABLE articles ADD COLUMN github_records TEXT NOT NULL DEFAULT '[]'",
+        );
+        database
+          .prepare("INSERT INTO schema_migrations(version) VALUES (3)")
+          .run();
+      }
     })
     .immediate();
 }

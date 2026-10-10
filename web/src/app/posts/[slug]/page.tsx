@@ -6,6 +6,7 @@ import remarkGfm from "remark-gfm";
 import { getPost, getComments } from "@/lib/content";
 import { formatDate, site } from "@/lib/site";
 import { Comments } from "@/components/comments";
+import { GitHubRecords } from "@/components/github-records";
 export async function generateMetadata({
   params,
 }: {
@@ -72,6 +73,7 @@ export default async function Article({
           ))}
         </div>
       </div>
+      <GitHubRecords records={post.githubRecords} />
       <Comments articleId={post.id} comments={getComments(post.id)} />
     </div>
   );

@@ -687,6 +687,83 @@ a:hover {
 .prose li {
   padding: 3px 0;
 }
+.github-records {
+  padding: 28px 0;
+  border-top: 1px solid var(--line);
+}
+.github-records-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+.github-records-heading h2 {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0;
+  font-size: 22px;
+}
+.github-records-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.github-records-list li + li {
+  border-top: 1px solid var(--line);
+}
+.github-records-list a {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 18px 0;
+}
+.github-records-list a:hover {
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+.github-record-kind {
+  font-size: 12px;
+  color: var(--muted);
+  flex: 0 0 32px;
+}
+.github-record-details {
+  flex: 1;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.github-record-details strong {
+  display: block;
+  font-weight: 500;
+}
+.github-record-details > span {
+  display: block;
+  font-size: 13px;
+  color: var(--muted);
+  margin-top: 4px;
+}
+.github-records-list svg {
+  flex-shrink: 0;
+}
+.github-editor {
+  margin: 32px 0;
+  padding: 24px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  min-width: 0;
+}
+.github-editor legend {
+  padding: 0 8px;
+  font-weight: 600;
+}
+.github-editor-row {
+  margin-bottom: 24px;
+}
+.github-editor-row .form-field {
+  margin-bottom: 12px;
+}
 .article-end {
   display: flex;
   align-items: center;

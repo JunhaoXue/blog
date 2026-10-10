@@ -1,4 +1,5 @@
 import { database } from "./database";
+import type { GitHubRecord } from "./github-records";
 export type Post = {
   id: string;
   slug: string;
@@ -13,18 +14,24 @@ export type Post = {
   demo: boolean;
   readingMinutes: number;
   updatedAt: string;
+  githubRecords: GitHubRecord[];
 };
-type PostRow = Omit<Post, "tags" | "demo" | "readingMinutes"> & {
+type PostRow = Omit<
+  Post,
+  "tags" | "demo" | "readingMinutes" | "githubRecords"
+> & {
   tags: string;
+  githubRecords: string;
   demo: number;
 };
 const select = `SELECT a.id, a.slug, a.title, a.description, a.content, c.name AS category,
-  c.id AS categoryId, a.tags, a.status, a.published_at AS date, a.demo, a.updated_at AS updatedAt
+  c.id AS categoryId, a.tags, a.status, a.published_at AS date, a.demo, a.updated_at AS updatedAt, a.github_records AS githubRecords
   FROM articles a JOIN categories c ON c.id = a.category_id`;
 function convert(row: PostRow): Post {
   return {
     ...row,
     tags: JSON.parse(row.tags),
+    githubRecords: JSON.parse(row.githubRecords),
     demo: Boolean(row.demo),
     readingMinutes: Math.max(1, Math.ceil(row.content.length / 500)),
   };

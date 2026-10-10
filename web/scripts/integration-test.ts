@@ -153,6 +153,32 @@ try {
     published_at: string;
     updated_at: string;
   };
+  // Reproduce the pre-feature database, then migrate without losing existing articles.
+  db.exec(
+    "DELETE FROM schema_migrations WHERE version=3; ALTER TABLE articles DROP COLUMN github_records;",
+  );
+  const migrated = spawnSync(
+    process.execPath,
+    ["--import", "tsx", "scripts/setup.ts"],
+    { env, encoding: "utf8" },
+  );
+  ok("existing database upgrades", migrated.status, 0);
+  ok(
+    "migration preserves existing article",
+    (
+      db.prepare("SELECT content FROM articles WHERE id=?").get(example.id) as {
+        content: string;
+      }
+    ).content,
+    example.content,
+  );
+  ok(
+    "existing article has GitHub empty state",
+    (await (await fetch(base + `/posts/${example.slug}`)).text()).includes(
+      "这篇文章暂未关联仓库、提交或 PR。",
+    ),
+    true,
+  );
   ok(
     "replace example with real article",
     (
@@ -229,10 +255,96 @@ try {
     tags: ["QA"],
     status: "draft",
     date: new Date(Date.now() - 1000).toISOString(),
+    githubRecords: [
+      { title: "博客仓库", url: "https://github.com/JunhaoXue/blog/" },
+      {
+        title: "重构提交",
+        url: "https://github.com/JunhaoXue/blog/commit/29a469fd5e182964bd9b5e19defa688fae795947",
+      },
+      { title: "重构 PR", url: "https://github.com/JunhaoXue/blog/pull/1" },
+    ],
   };
+  for (const url of [
+    "javascript:alert(1)",
+    "https://github.com.evil.test/a/b",
+    "https://github.com@evil.test/a/b",
+    "https://github.com/a/b/issues/1",
+    "https://github.com/a/b?token=secret",
+  ]) {
+    ok(
+      `invalid GitHub address rejected: ${url}`,
+      (
+        await write(
+          "/api/admin/articles",
+          { ...data, githubRecords: [{ title: "", url }] },
+          adminCookie,
+        )
+      ).status,
+      400,
+    );
+  }
+  ok(
+    "duplicate GitHub records rejected",
+    (
+      await write(
+        "/api/admin/articles",
+        {
+          ...data,
+          githubRecords: [
+            data.githubRecords[0],
+            {
+              ...data.githubRecords[0],
+              url: "https://github.com/JunhaoXue/blog",
+            },
+          ],
+        },
+        adminCookie,
+      )
+    ).status,
+    400,
+  );
+  ok(
+    "too many GitHub records rejected",
+    (
+      await write(
+        "/api/admin/articles",
+        {
+          ...data,
+          githubRecords: Array.from({ length: 13 }, (_, i) => ({
+            title: "",
+            url: `https://github.com/JunhaoXue/blog/pull/${i + 1}`,
+          })),
+        },
+        adminCookie,
+      )
+    ).status,
+    400,
+  );
   const created = await write("/api/admin/articles", data, adminCookie);
   ok("create draft", created.status, 200);
   const { id } = await created.json();
+  ok(
+    "GitHub records persisted and canonicalized",
+    JSON.parse(
+      (
+        db
+          .prepare("SELECT github_records FROM articles WHERE id=?")
+          .get(id) as { github_records: string }
+      ).github_records,
+    )[0].url,
+    "https://github.com/JunhaoXue/blog",
+  );
+  ok(
+    "editor restores GitHub record fields",
+    (
+      await (
+        await fetch(base + `/admin/articles/${id}`, {
+          headers: { cookie: adminCookie },
+        })
+      ).text()
+    ).includes('value="重构 PR"'),
+    true,
+  );
   ok(
     "draft is private",
     (await fetch(base + "/posts/integration-test")).status,
@@ -270,6 +382,23 @@ try {
     (await fetch(base + "/posts/integration-test")).status,
     200,
   );
+  const githubPage = await (
+    await fetch(base + "/posts/integration-test")
+  ).text();
+  ok(
+    "all article GitHub records publicly linked",
+    data.githubRecords.every((record) =>
+      githubPage.includes(`href="${record.url.replace(/\/$/, "")}"`),
+    ),
+    true,
+  );
+  ok(
+    "GitHub types and commit reference displayed",
+    ["GitHub 记录", "提交", "PR", "29a469f"].every((label) =>
+      githubPage.includes(label),
+    ),
+    true,
+  );
   ok(
     "Markdown cannot inject script",
     (await (await fetch(base + "/posts/integration-test")).text()).includes(
@@ -287,6 +416,41 @@ try {
       )
     ).status,
     409,
+  );
+  const githubVersion = (
+    db.prepare("SELECT updated_at FROM articles WHERE id=?").get(id) as {
+      updated_at: string;
+    }
+  ).updated_at;
+  ok(
+    "remove article GitHub records",
+    (
+      await write(
+        "/api/admin/articles",
+        {
+          ...data,
+          id,
+          status: "published",
+          updatedAt: githubVersion,
+          githubRecords: [],
+        },
+        adminCookie,
+      )
+    ).status,
+    200,
+  );
+  const clearedPage = await (
+    await fetch(base + "/posts/integration-test")
+  ).text();
+  ok(
+    "removed PR no longer displayed",
+    clearedPage.includes('href="https://github.com/JunhaoXue/blog/pull/1"'),
+    false,
+  );
+  ok(
+    "empty GitHub section remains on article",
+    clearedPage.includes("这篇文章暂未关联仓库、提交或 PR。"),
+    true,
   );
   ok(
     "sitemap updates after publication",
