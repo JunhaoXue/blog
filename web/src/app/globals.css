@@ -377,6 +377,63 @@ svg {
   color: var(--muted);
   margin-bottom: 32px;
 }
+.resume-profile,
+.resume-photo-editor {
+  display: flex;
+  align-items: flex-start;
+  gap: 24px;
+}
+.resume-photo {
+  width: 144px;
+  height: 144px;
+  object-fit: cover;
+  border-radius: var(--card-radius);
+  flex-shrink: 0;
+  background: var(--panel);
+}
+.resume-intro,
+.resume-photo-controls {
+  min-width: 0;
+  flex: 1;
+  overflow-wrap: anywhere;
+}
+.resume-intro h1 {
+  font-size: 30px;
+  line-height: 1.4;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+.resume-headline {
+  font-size: 15px;
+  margin-bottom: 12px;
+}
+.resume-summary {
+  font-size: 14px;
+  white-space: pre-wrap;
+  margin-bottom: 0;
+}
+.resume-content {
+  margin-top: 32px;
+}
+.resume-fields {
+  border: 0;
+  padding: 0;
+  margin: 0;
+  min-width: 0;
+}
+.resume-photo-editor {
+  margin-bottom: 24px;
+}
+.resume-photo-controls p,
+.resume-publish-help {
+  font-size: 13px;
+}
+.resume-publish-help {
+  margin-top: 24px;
+}
+#resume-status {
+  width: 140px;
+}
 .article-header {
   padding-bottom: 24px;
   margin-bottom: 16px;
@@ -991,6 +1048,18 @@ label {
 @media (max-width: 720px) {
   :root {
     --card-padding: 20px;
+  }
+  .resume-profile,
+  .resume-photo-editor {
+    flex-direction: column;
+    gap: 20px;
+  }
+  .resume-photo {
+    width: 112px;
+    height: 112px;
+  }
+  .resume-photo-controls {
+    width: 100%;
   }
   .header-inner {
     padding: 16px 20px;

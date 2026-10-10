@@ -64,6 +64,17 @@ export function migrateBlogDatabase() {
           .prepare("INSERT INTO schema_migrations(version) VALUES (3)")
           .run();
       }
+      database.exec(`
+        CREATE TABLE IF NOT EXISTS resume (
+          id INTEGER PRIMARY KEY CHECK(id=1), name TEXT NOT NULL DEFAULT '',
+          headline TEXT NOT NULL DEFAULT '', summary TEXT NOT NULL DEFAULT '',
+          content TEXT NOT NULL DEFAULT '', photo_id TEXT REFERENCES media(id),
+          published INTEGER NOT NULL DEFAULT 0 CHECK(published IN (0,1)),
+          revision INTEGER NOT NULL DEFAULT 0, updated_at TEXT NOT NULL DEFAULT ''
+        );
+        INSERT OR IGNORE INTO resume(id) VALUES (1);
+        INSERT OR IGNORE INTO schema_migrations(version) VALUES (4);
+      `);
     })
     .immediate();
 }

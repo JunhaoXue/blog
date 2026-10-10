@@ -99,6 +99,15 @@ export async function DELETE(request: Request) {
         .get(`%/api/media/${id}%`)
     )
       throw new HttpError(409, "图片仍被文章使用，请先移除文章中的引用。");
+    if (
+      database
+        .prepare("SELECT id FROM resume WHERE photo_id=? OR content LIKE ?")
+        .get(id, `%/api/media/${id}%`)
+    )
+      throw new HttpError(
+        409,
+        "图片仍被简历使用，请先移除简历中的引用并保存。",
+      );
     const filename = path.join(
       /* turbopackIgnore: true */ process.env.UPLOADS_PATH ||
         path.resolve("uploads"),

@@ -15,6 +15,7 @@ export async function Header() {
           <Link href="/">文章</Link>
           <Link href="/archive">归档</Link>
           <Link href="/discussions">讨论</Link>
+          <Link href="/resume">简历</Link>
           <Link href="/about">关于</Link>
         </nav>
         <div className="header-actions">

@@ -97,6 +97,7 @@ try {
     "/",
     "/archive",
     "/about",
+    "/resume",
     "/search?q=Markdown",
     "/links",
     "/discussions",
@@ -657,6 +658,191 @@ try {
     Buffer.from(await download.arrayBuffer()).equals(png),
     true,
   );
+  const resumeData = {
+    name: "Resume QA Name",
+    headline: "Resume QA Role",
+    summary: "Resume QA private summary",
+    content: "## 工作经历\n\nResume QA experience\n\n<script>alert(1)</script>",
+    photoId: media.id,
+    published: false,
+    revision: 0,
+  };
+  ok(
+    "anonymous resume write blocked",
+    (await write("/api/admin/resume", resumeData)).status,
+    401,
+  );
+  ok(
+    "reader resume write blocked",
+    (await write("/api/admin/resume", resumeData, readerCookie)).status,
+    403,
+  );
+  ok(
+    "cross-origin resume write blocked",
+    (
+      await write(
+        "/api/admin/resume",
+        resumeData,
+        adminCookie,
+        "POST",
+        "https://untrusted.example",
+      )
+    ).status,
+    403,
+  );
+  ok(
+    "resume draft saves",
+    (await write("/api/admin/resume", resumeData, adminCookie)).status,
+    200,
+  );
+  const draftResume = await (await fetch(base + "/resume")).text();
+  ok(
+    "draft resume private including metadata",
+    draftResume.includes(resumeData.summary) ||
+      draftResume.includes(resumeData.name) ||
+      draftResume.includes(media.url),
+    false,
+  );
+  ok(
+    "draft resume absent from sitemap",
+    (await (await fetch(base + "/sitemap.xml")).text()).includes("/resume"),
+    false,
+  );
+  const resumeEditor = await (
+    await fetch(base + "/admin/resume", { headers: { cookie: adminCookie } })
+  ).text();
+  ok(
+    "resume editor restores saved draft",
+    resumeEditor.includes(resumeData.summary) &&
+      resumeEditor.includes(media.id),
+    true,
+  );
+  ok(
+    "stale resume save rejected",
+    (await write("/api/admin/resume", resumeData, adminCookie)).status,
+    409,
+  );
+  ok(
+    "missing resume photo rejected",
+    (
+      await write(
+        "/api/admin/resume",
+        {
+          ...resumeData,
+          photoId: "00000000-0000-4000-8000-000000000001",
+          revision: 1,
+        },
+        adminCookie,
+      )
+    ).status,
+    400,
+  );
+  ok(
+    "invalid resume photo rejected",
+    (
+      await write(
+        "/api/admin/resume",
+        {
+          ...resumeData,
+          photoId: "https://untrusted.example/photo",
+          revision: 1,
+        },
+        adminCookie,
+      )
+    ).status,
+    400,
+  );
+  ok(
+    "empty published resume rejected",
+    (
+      await write(
+        "/api/admin/resume",
+        { ...resumeData, content: " ", published: true, revision: 1 },
+        adminCookie,
+      )
+    ).status,
+    400,
+  );
+  ok(
+    "draft resume photo deletion blocked",
+    (await write("/api/admin/media", { id: media.id }, adminCookie, "DELETE"))
+      .status,
+    409,
+  );
+  ok(
+    "resume publishes",
+    (
+      await write(
+        "/api/admin/resume",
+        { ...resumeData, published: true, revision: 1 },
+        adminCookie,
+      )
+    ).status,
+    200,
+  );
+  const publicResume = await (await fetch(base + "/resume")).text();
+  ok(
+    "public resume displays photo and experience",
+    publicResume.includes(resumeData.name) &&
+      publicResume.includes("Resume QA experience") &&
+      publicResume.includes(media.url),
+    true,
+  );
+  ok(
+    "resume Markdown cannot inject script",
+    publicResume.includes("<script>alert(1)</script>"),
+    false,
+  );
+  ok(
+    "published resume in sitemap",
+    (await (await fetch(base + "/sitemap.xml")).text()).includes("/resume"),
+    true,
+  );
+  ok(
+    "resume can withdraw publication and remove photo",
+    (
+      await write(
+        "/api/admin/resume",
+        {
+          ...resumeData,
+          photoId: null,
+          content: `Resume QA experience\n![Photo](${media.url})`,
+          revision: 2,
+        },
+        adminCookie,
+      )
+    ).status,
+    200,
+  );
+  ok(
+    "withdrawn resume hidden",
+    (await (await fetch(base + "/resume")).text()).includes(
+      "Resume QA experience",
+    ),
+    false,
+  );
+  ok(
+    "resume inline image deletion blocked",
+    (await write("/api/admin/media", { id: media.id }, adminCookie, "DELETE"))
+      .status,
+    409,
+  );
+  ok(
+    "resume image references removable",
+    (
+      await write(
+        "/api/admin/resume",
+        {
+          ...resumeData,
+          photoId: null,
+          content: "Resume QA retained draft",
+          revision: 3,
+        },
+        adminCookie,
+      )
+    ).status,
+    200,
+  );
   const imageRevision = (
     db.prepare("SELECT updated_at FROM articles WHERE id=?").get(id) as {
       updated_at: string;
@@ -882,6 +1068,15 @@ try {
     { env, encoding: "utf8" },
   );
   ok("setup can run again", repeated.status, 0);
+  ok(
+    "setup preserves saved resume",
+    (
+      db.prepare("SELECT content FROM resume WHERE id=1").get() as {
+        content: string;
+      }
+    ).content,
+    "Resume QA retained draft",
+  );
   ok(
     "setup does not restore deleted samples",
     (

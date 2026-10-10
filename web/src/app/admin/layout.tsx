@@ -38,6 +38,10 @@ export default async function AdminLayout({
           <Image size={16} />
           图片
         </Link>
+        <Link href="/admin/resume">
+          <FileText size={16} />
+          简历
+        </Link>
         <Link href="/admin/users">
           <Users size={16} />
           读者与权限
