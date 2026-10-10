@@ -74,6 +74,19 @@ export function migrateBlogDatabase() {
         );
         INSERT OR IGNORE INTO resume(id) VALUES (1);
         INSERT OR IGNORE INTO schema_migrations(version) VALUES (4);
+        CREATE TABLE IF NOT EXISTS article_likes (
+          user_id TEXT NOT NULL REFERENCES user(id) ON DELETE CASCADE,
+          article_id TEXT NOT NULL REFERENCES articles(id) ON DELETE CASCADE,
+          PRIMARY KEY(user_id,article_id)
+        );
+        CREATE INDEX IF NOT EXISTS article_likes_article ON article_likes(article_id);
+        CREATE TABLE IF NOT EXISTS discussion_likes (
+          user_id TEXT NOT NULL REFERENCES user(id) ON DELETE CASCADE,
+          discussion_id TEXT NOT NULL REFERENCES discussions(id) ON DELETE CASCADE,
+          PRIMARY KEY(user_id,discussion_id)
+        );
+        CREATE INDEX IF NOT EXISTS discussion_likes_discussion ON discussion_likes(discussion_id);
+        INSERT OR IGNORE INTO schema_migrations(version) VALUES (5);
       `);
     })
     .immediate();

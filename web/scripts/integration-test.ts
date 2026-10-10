@@ -351,6 +351,66 @@ try {
     (await fetch(base + "/posts/integration-test")).status,
     404,
   );
+  const articleLike = { target: "article", id, liked: true };
+  ok(
+    "anonymous post like blocked",
+    (await write("/api/likes", articleLike, "", "PUT")).status,
+    401,
+  );
+  ok(
+    "cross-origin post like blocked",
+    (
+      await write(
+        "/api/likes",
+        articleLike,
+        readerCookie,
+        "PUT",
+        "https://untrusted.example",
+      )
+    ).status,
+    403,
+  );
+  ok(
+    "draft article like blocked",
+    (await write("/api/likes", articleLike, readerCookie, "PUT")).status,
+    404,
+  );
+  ok(
+    "missing post like blocked",
+    (
+      await write(
+        "/api/likes",
+        { ...articleLike, id: "missing" },
+        readerCookie,
+        "PUT",
+      )
+    ).status,
+    404,
+  );
+  ok(
+    "invalid like target blocked",
+    (
+      await write(
+        "/api/likes",
+        { ...articleLike, target: "user" },
+        readerCookie,
+        "PUT",
+      )
+    ).status,
+    400,
+  );
+  ok(
+    "invalid like state blocked",
+    (
+      await write(
+        "/api/likes",
+        { ...articleLike, liked: "yes" },
+        readerCookie,
+        "PUT",
+      )
+    ).status,
+    400,
+  );
   ok(
     "draft absent from search",
     (
@@ -382,6 +442,83 @@ try {
     "published article readable",
     (await fetch(base + "/posts/integration-test")).status,
     200,
+  );
+  const likedArticle = await write(
+    "/api/likes",
+    articleLike,
+    readerCookie,
+    "PUT",
+  );
+  ok("reader can like article", likedArticle.status, 200);
+  ok("article like response authoritative", await likedArticle.json(), {
+    count: 1,
+    liked: true,
+  });
+  const duplicateLikes = await Promise.all([
+    write("/api/likes", articleLike, readerCookie, "PUT"),
+    write("/api/likes", articleLike, readerCookie, "PUT"),
+  ]);
+  ok(
+    "concurrent duplicate likes do not inflate count",
+    await Promise.all(duplicateLikes.map((response) => response.json())),
+    [
+      { count: 1, liked: true },
+      { count: 1, liked: true },
+    ],
+  );
+  const likedPage = await (
+    await fetch(base + "/posts/integration-test", {
+      headers: { cookie: readerCookie },
+    })
+  ).text();
+  ok(
+    "reload restores liked state",
+    likedPage.includes('aria-pressed="true"') &&
+      likedPage.includes("取消点赞，1人点赞"),
+    true,
+  );
+  ok(
+    "guest sees count without inheriting liked state",
+    (await (await fetch(base + "/posts/integration-test")).text()).includes(
+      "点赞，1人点赞",
+    ),
+    true,
+  );
+  const adminLike = await write("/api/likes", articleLike, adminCookie, "PUT");
+  ok("different accounts counted separately", await adminLike.json(), {
+    count: 2,
+    liked: true,
+  });
+  const unlike = await write(
+    "/api/likes",
+    { ...articleLike, liked: false },
+    readerCookie,
+    "PUT",
+  );
+  ok("reader can cancel own like", await unlike.json(), {
+    count: 1,
+    liked: false,
+  });
+  ok(
+    "repeated unlike does not reduce others count",
+    await (
+      await write(
+        "/api/likes",
+        { ...articleLike, liked: false },
+        readerCookie,
+        "PUT",
+      )
+    ).json(),
+    { count: 1, liked: false },
+  );
+  const postButtons = await (
+    await fetch(base + "/posts/integration-test")
+  ).text();
+  ok(
+    "article sharing control visible",
+    postButtons.includes("post-actions-buttons") &&
+      postButtons.includes("分享"),
+    true,
   );
   const githubPage = await (
     await fetch(base + "/posts/integration-test")
@@ -894,6 +1031,44 @@ try {
     (await fetch(base + `/discussions/${topic.id}`)).status,
     200,
   );
+  const topicLike = { target: "discussion", id: topic.id, liked: true };
+  ok(
+    "reader can like discussion",
+    await (await write("/api/likes", topicLike, readerCookie, "PUT")).json(),
+    { count: 1, liked: true },
+  );
+  ok(
+    "discussion duplicate like remains one",
+    await (await write("/api/likes", topicLike, readerCookie, "PUT")).json(),
+    { count: 1, liked: true },
+  );
+  ok(
+    "discussion unlike works",
+    await (
+      await write(
+        "/api/likes",
+        { ...topicLike, liked: false },
+        readerCookie,
+        "PUT",
+      )
+    ).json(),
+    { count: 0, liked: false },
+  );
+  ok(
+    "discussion can be liked again",
+    await (await write("/api/likes", topicLike, readerCookie, "PUT")).json(),
+    { count: 1, liked: true },
+  );
+  const likedTopic = await (
+    await fetch(base + `/discussions/${topic.id}`, {
+      headers: { cookie: readerCookie },
+    })
+  ).text();
+  ok(
+    "discussion like state and share control visible",
+    likedTopic.includes('aria-pressed="true"') && likedTopic.includes("分享"),
+    true,
+  );
   const replyRegistration = await write("/api/auth/sign-up/email", {
     email: "reply-reader@example.test",
     password,
@@ -980,6 +1155,22 @@ try {
     ).count,
     0,
   );
+  ok(
+    "discussion likes cascade",
+    (
+      db
+        .prepare(
+          "SELECT COUNT(*) AS count FROM discussion_likes WHERE discussion_id=?",
+        )
+        .get(topic.id) as { count: number }
+    ).count,
+    0,
+  );
+  ok(
+    "deleted discussion cannot be liked",
+    (await write("/api/likes", topicLike, readerCookie, "PUT")).status,
+    404,
+  );
   updatedAt = (
     db.prepare("SELECT updated_at FROM articles WHERE id=?").get(id) as {
       updated_at: string;
@@ -1008,6 +1199,11 @@ try {
     404,
   );
   ok(
+    "scheduled article cannot be liked",
+    (await write("/api/likes", articleLike, readerCookie, "PUT")).status,
+    404,
+  );
+  ok(
     "future article absent from sitemap",
     (await (await fetch(base + "/sitemap.xml")).text()).includes(
       "/posts/integration-test",
@@ -1024,6 +1220,17 @@ try {
     (
       db
         .prepare("SELECT COUNT(*) AS count FROM comments WHERE article_id=?")
+        .get(id) as { count: number }
+    ).count,
+    0,
+  );
+  ok(
+    "article likes cascade",
+    (
+      db
+        .prepare(
+          "SELECT COUNT(*) AS count FROM article_likes WHERE article_id=?",
+        )
         .get(id) as { count: number }
     ).count,
     0,
@@ -1056,6 +1263,11 @@ try {
   ok("password change succeeds", changed.status, 200);
   const loggedOut = await write("/api/auth/sign-out", {}, adminCookie);
   ok("sign out", loggedOut.status, 200);
+  ok(
+    "signed-out post like blocked",
+    (await write("/api/likes", articleLike, adminCookie, "PUT")).status,
+    401,
+  );
   ok(
     "signed-out session cannot write",
     (await write("/api/admin/articles", {}, adminCookie)).status,

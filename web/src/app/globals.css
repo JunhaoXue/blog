@@ -760,6 +760,47 @@ label {
   border-top: 1px solid var(--line);
   padding-top: 24px;
 }
+.post-actions {
+  margin: 24px 0 32px;
+}
+.post-actions-buttons,
+.post-share-panel {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.post-action-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 40px;
+  padding: 8px 14px;
+  border: 1px solid var(--line);
+  border-radius: 24px;
+  background: var(--card-bg);
+  color: var(--muted);
+  font-size: 13px;
+}
+.post-action-button:hover,
+.post-action-button.is-active {
+  background: var(--panel);
+  color: var(--ink);
+}
+.post-share-panel {
+  margin-top: 12px;
+}
+.post-share-panel input {
+  flex: 1 1 220px;
+  min-width: 0;
+  font-size: 13px;
+}
+.post-actions-message {
+  font-size: 13px;
+  margin: 12px 0 0;
+  overflow-wrap: anywhere;
+}
 .comment-row {
   padding: 20px 0;
 }

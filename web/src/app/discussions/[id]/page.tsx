@@ -5,6 +5,9 @@ import remarkGfm from "remark-gfm";
 import { database } from "@/lib/database";
 import { formatDate } from "@/lib/site";
 import { Comments } from "@/components/comments";
+import { PostActions } from "@/components/post-actions";
+import { getPostReactions } from "@/lib/post-reactions";
+import { getSession } from "@/lib/authorization";
 export const metadata = { title: "讨论详情" };
 export default async function Discussion({
   params,
@@ -18,6 +21,8 @@ export default async function Discussion({
     | { title: string; content: string; author: string; created_at: string }
     | undefined;
   if (!item) notFound();
+  const session = await getSession();
+  const reactions = getPostReactions("discussion", id, session?.user.id);
   const replies = database
     .prepare(
       "SELECT id,author,content,created_at AS date,0 AS votes FROM replies WHERE discussion_id=? AND approved=1 ORDER BY created_at",
@@ -45,6 +50,16 @@ export default async function Discussion({
           {item.content}
         </ReactMarkdown>
       </div>
+      <PostActions
+        key={session?.user.id || "guest"}
+        target="discussion"
+        id={id}
+        path={`/discussions/${id}`}
+        title={item.title}
+        signedIn={Boolean(session)}
+        initialCount={reactions.count}
+        initialLiked={reactions.liked}
+      />
       <Comments target="discussion" articleId={id} comments={replies} />
     </div>
   );

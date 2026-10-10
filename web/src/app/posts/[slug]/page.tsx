@@ -7,6 +7,9 @@ import { getPost, getComments } from "@/lib/content";
 import { formatDate, site } from "@/lib/site";
 import { Comments } from "@/components/comments";
 import { GitHubRecords } from "@/components/github-records";
+import { PostActions } from "@/components/post-actions";
+import { getPostReactions } from "@/lib/post-reactions";
+import { getSession } from "@/lib/authorization";
 export async function generateMetadata({
   params,
 }: {
@@ -35,6 +38,8 @@ export default async function Article({
 }) {
   const post = getPost((await params).slug);
   if (!post) notFound();
+  const session = await getSession();
+  const reactions = getPostReactions("article", post.id, session?.user.id);
   return (
     <div className="reading-shell">
       <Link className="back-link" href="/">
@@ -72,6 +77,16 @@ export default async function Article({
           ))}
         </div>
       </div>
+      <PostActions
+        key={session?.user.id || "guest"}
+        target="article"
+        id={post.id}
+        path={`/posts/${post.slug}`}
+        title={post.title}
+        signedIn={Boolean(session)}
+        initialCount={reactions.count}
+        initialLiked={reactions.liked}
+      />
       <GitHubRecords records={post.githubRecords} />
       <Comments articleId={post.id} comments={getComments(post.id)} />
     </div>
