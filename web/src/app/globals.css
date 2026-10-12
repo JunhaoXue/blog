@@ -391,6 +391,14 @@ svg {
   flex-shrink: 0;
   background: var(--panel);
 }
+.resume-profile {
+  align-items: center;
+  gap: 20px;
+}
+.resume-profile .resume-photo {
+  width: 80px;
+  height: 80px;
+}
 .resume-intro,
 .resume-photo-controls {
   min-width: 0;
@@ -405,15 +413,77 @@ svg {
 }
 .resume-headline {
   font-size: 15px;
-  margin-bottom: 12px;
+  margin-bottom: 0;
 }
 .resume-summary {
   font-size: 14px;
   white-space: pre-wrap;
+  margin-top: 8px;
   margin-bottom: 0;
 }
 .resume-content {
-  margin-top: 32px;
+  margin-top: 48px;
+}
+.resume-work-list {
+  border-top: 1px solid var(--line);
+}
+.resume-work-row {
+  display: grid;
+  grid-template-columns: 144px minmax(0, 1fr);
+  gap: 24px;
+  padding: 24px 0;
+  border-bottom: 1px solid var(--line);
+}
+.resume-work-detail,
+.resume-work-period,
+.resume-project-card {
+  min-width: 0;
+}
+.prose.resume-content .resume-entry-title {
+  font-size: 16px;
+  line-height: 1.6;
+  margin: 0 0 8px;
+  letter-spacing: 0;
+}
+.prose.resume-content .resume-entry-date {
+  font-size: 13px;
+  line-height: 1.8;
+  margin: 0;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+.resume-work-period {
+  padding-top: 2px;
+}
+.resume-project-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--card-gap);
+}
+.prose.resume-content .resume-project-card {
+  padding: var(--card-padding);
+  font-size: 15px;
+  line-height: 1.8;
+}
+.prose.resume-content .resume-project-card .resume-entry-date {
+  margin-bottom: 16px;
+}
+.prose.resume-content
+  :is(.resume-project-card, .resume-work-detail)
+  > :last-child {
+  margin-bottom: 0;
+}
+.resume-project-card img {
+  display: block;
+  width: 100%;
+  max-height: 220px;
+  object-fit: contain;
+  border-radius: 12px;
+  background: var(--panel);
+}
+.resume-format-help {
+  font-size: 13px;
+  margin: 8px 0 0;
 }
 .resume-fields {
   border: 0;
@@ -1314,7 +1384,6 @@ label {
   :root {
     --card-padding: 20px;
   }
-  .resume-profile,
   .resume-photo-editor {
     flex-direction: column;
     gap: 20px;
@@ -1322,6 +1391,35 @@ label {
   .resume-photo {
     width: 112px;
     height: 112px;
+  }
+  .resume-profile {
+    gap: 16px;
+  }
+  .resume-profile .resume-photo {
+    width: 64px;
+    height: 64px;
+    border-radius: 16px;
+  }
+  .resume-intro h1 {
+    font-size: 25px;
+    margin-bottom: 4px;
+  }
+  .resume-headline {
+    font-size: 14px;
+  }
+  .resume-content {
+    margin-top: 36px;
+  }
+  .resume-work-row {
+    grid-template-columns: 1fr;
+    gap: 8px;
+    padding: 20px 0;
+  }
+  .resume-work-period {
+    padding-top: 0;
+  }
+  .resume-project-grid {
+    grid-template-columns: 1fr;
   }
   .resume-photo-controls {
     width: 100%;

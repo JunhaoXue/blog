@@ -206,8 +206,11 @@ export function ResumeEditor({
               maxLength={100_000}
               value={resume.content}
               onChange={(event) => change("content", event.target.value)}
-              placeholder="填写工作经历、教育背景、项目经验、技能和联系方式…"
+              placeholder="填写工作经历和代表作品…"
             />
+            <p className="muted resume-format-help">
+              在“工作经历”和“作品”二级标题下，用加粗名称、换行时间和介绍组织条目；作品可插入截图与访问链接。
+            </p>
           </div>
           <button
             type="button"

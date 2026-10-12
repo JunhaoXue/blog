@@ -1,18 +1,19 @@
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import type { Resume } from "@/lib/resume";
+import { resumeLayoutPlugin } from "@/lib/resume-layout";
 
 export function ResumeView({ resume }: { resume: Resume }) {
   return (
     <>
-      <header className="resume-profile surface-card">
+      <header className="resume-profile">
         {resume.photoId && (
           <img
             className="resume-photo"
             src={`/api/media/${resume.photoId}`}
             alt={`${resume.name}的照片`}
-            width={144}
-            height={144}
+            width={80}
+            height={80}
           />
         )}
         <div className="resume-intro">
@@ -26,7 +27,10 @@ export function ResumeView({ resume }: { resume: Resume }) {
         </div>
       </header>
       <article className="prose resume-content" aria-label="履历">
-        <ReactMarkdown remarkPlugins={[remarkGfm]}>
+        <ReactMarkdown
+          remarkPlugins={[remarkGfm]}
+          rehypePlugins={[resumeLayoutPlugin]}
+        >
           {resume.content}
         </ReactMarkdown>
       </article>

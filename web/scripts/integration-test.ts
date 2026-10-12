@@ -15,6 +15,7 @@ import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import { resumeLayoutPlugin } from "../src/lib/resume-layout";
 const directory = mkdtempSync(path.join(tmpdir(), "junhao-blog-test-"));
 const port = process.env.TEST_PORT || "3001";
 const base = `http://localhost:${port}`;
@@ -104,6 +105,81 @@ try {
     await new Promise((resolve) => setTimeout(resolve, 100));
   }
   assert.ok(ready, logs);
+  const renderResumeMarkdown = (content: string, styled = true) =>
+    renderToStaticMarkup(
+      createElement(ReactMarkdown, {
+        remarkPlugins: [remarkGfm],
+        rehypePlugins: styled ? [resumeLayoutPlugin] : [],
+        children: content,
+      }),
+    );
+  const portfolioFixture = `## 工作经历
+
+**产品团队 · 产品经理**\\
+2022.07 – 至今
+
+负责产品体验与开发协作。
+
+## 作品
+
+**项目名称**\\
+2026.09
+
+这是项目介绍，保留 **重点**。
+
+![项目截图](/api/media/test-image)
+
+[访问作品](https://example.test/project)
+
+## 其他信息
+
+保留自定义段落。`;
+  const portfolioHtml = renderResumeMarkdown(portfolioFixture);
+  ok(
+    "resume layouts group experience and projects",
+    portfolioHtml.includes('class="resume-work-row"') &&
+      portfolioHtml.includes('class="resume-project-card surface-card"'),
+    true,
+  );
+  ok(
+    "resume layouts preserve descriptions, dates and custom sections",
+    [
+      "产品团队 · 产品经理",
+      "2022.07 – 至今",
+      "负责产品体验与开发协作。",
+      "2026.09",
+      "<strong>重点</strong>",
+      "保留自定义段落。",
+    ].every((value) => portfolioHtml.includes(value)),
+    true,
+  );
+  ok(
+    "resume cards preserve screenshots and real links",
+    portfolioHtml.includes('src="/api/media/test-image"') &&
+      portfolioHtml.includes('href="https://example.test/project"'),
+    true,
+  );
+  for (const source of [
+    "## 工作经历\n\n自由格式正文。",
+    "## 作品\n\n**尚未写完的项目**",
+    "## 作品\n\n**重点** 与普通正文混排。",
+    "## 教育背景\n\n**学校**\n\n原格式。",
+  ]) {
+    ok(
+      "resume custom or incomplete Markdown retains original rendering",
+      renderResumeMarkdown(source),
+      renderResumeMarkdown(source, false),
+    );
+  }
+  const unsafeResume = renderResumeMarkdown(
+    "## 作品\n\n**项目**\n\n[危险链接](javascript:alert(1))\n\n<script>alert(1)</script>",
+  );
+  ok(
+    "resume card layout retains Markdown safety",
+    unsafeResume.includes('href="javascript:') ||
+      unsafeResume.includes("<script>"),
+    false,
+  );
   const blankEnv = {
     ...env,
     DATABASE_PATH: path.join(directory, "blank.sqlite"),
