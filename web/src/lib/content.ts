@@ -16,6 +16,8 @@ export type Post = {
   readingMinutes: number;
   updatedAt: string;
   githubRecords: GitHubRecord[];
+  coverId: string | null;
+  coverAlt: string;
 };
 type PostRow = Omit<
   Post,
@@ -26,7 +28,8 @@ type PostRow = Omit<
   demo: number;
 };
 const select = `SELECT a.id, a.slug, a.title, a.description, a.content, c.name AS category,
-  c.id AS categoryId, a.tags, a.status, a.published_at AS date, a.demo, a.updated_at AS updatedAt, a.github_records AS githubRecords
+  c.id AS categoryId, a.tags, a.status, a.published_at AS date, a.demo, a.updated_at AS updatedAt, a.github_records AS githubRecords,
+  a.cover_media_id AS coverId, a.cover_alt AS coverAlt
   FROM articles a JOIN categories c ON c.id = a.category_id`;
 function convert(row: PostRow): Post {
   return {

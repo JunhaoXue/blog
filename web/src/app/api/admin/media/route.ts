@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { randomUUID } from "node:crypto";
 import fs from "node:fs/promises";
+import { unlinkSync } from "node:fs";
 import path from "node:path";
 import { authorize, endpoint, HttpError, jsonBody } from "@/lib/api";
 import { database } from "@/lib/database";
@@ -89,36 +90,47 @@ export async function DELETE(request: Request) {
   return endpoint(async () => {
     await authorize(request, true);
     const { id } = z.object({ id: z.uuid() }).parse(await jsonBody(request));
-    const file = database
-      .prepare("SELECT filename FROM media WHERE id=?")
-      .get(id) as { filename: string } | undefined;
-    if (!file) throw new HttpError(404, "图片不存在。");
-    if (
-      database
-        .prepare("SELECT id FROM articles WHERE content LIKE ? LIMIT 1")
-        .get(`%/api/media/${id}%`)
-    )
-      throw new HttpError(409, "图片仍被文章使用，请先移除文章中的引用。");
-    if (
-      database
-        .prepare("SELECT id FROM resume WHERE photo_id=? OR content LIKE ?")
-        .get(id, `%/api/media/${id}%`)
-    )
-      throw new HttpError(
-        409,
-        "图片仍被简历使用，请先移除简历中的引用并保存。",
-      );
-    const filename = path.join(
-      /* turbopackIgnore: true */ process.env.UPLOADS_PATH ||
-        path.resolve("uploads"),
-      file.filename,
-    );
-    try {
-      await fs.unlink(/* turbopackIgnore: true */ filename);
-    } catch (error) {
-      if ((error as NodeJS.ErrnoException).code !== "ENOENT") throw error;
-    }
-    database.prepare("DELETE FROM media WHERE id=?").run(id);
-    return { ok: true };
+    return database
+      .transaction(() => {
+        const file = database
+          .prepare("SELECT filename FROM media WHERE id=?")
+          .get(id) as { filename: string } | undefined;
+        if (!file) throw new HttpError(404, "图片不存在。");
+        if (
+          database
+            .prepare(
+              "SELECT id FROM articles WHERE cover_media_id=? OR content LIKE ? LIMIT 1",
+            )
+            .get(id, `%/api/media/${id}%`)
+        )
+          throw new HttpError(
+            409,
+            "图片仍被文章或封面使用，请先移除引用并保存。",
+          );
+        if (
+          database
+            .prepare("SELECT id FROM resume WHERE photo_id=? OR content LIKE ?")
+            .get(id, `%/api/media/${id}%`)
+        )
+          throw new HttpError(
+            409,
+            "图片仍被简历使用，请先移除简历中的引用并保存。",
+          );
+        const filename = path.join(
+          /* turbopackIgnore: true */ process.env.UPLOADS_PATH ||
+            path.resolve("uploads"),
+          file.filename,
+        );
+        try {
+          // Keep reference checks and file removal under one write lock so another
+          // editor cannot attach a cover between the check and the deletion.
+          unlinkSync(/* turbopackIgnore: true */ filename);
+        } catch (error) {
+          if ((error as NodeJS.ErrnoException).code !== "ENOENT") throw error;
+        }
+        database.prepare("DELETE FROM media WHERE id=?").run(id);
+        return { ok: true };
+      })
+      .immediate();
   });
 }

@@ -7,6 +7,7 @@ import remarkGfm from "remark-gfm";
 import type { Post } from "@/lib/content";
 import { GitHubRecords } from "@/components/github-records";
 import type { GitHubRecord } from "@/lib/github-records";
+import { CoverEditor } from "./cover-editor";
 export function ArticleEditor({
   post,
   categories,
@@ -19,6 +20,9 @@ export function ArticleEditor({
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
   const [dirty, setDirty] = useState(false);
+  const [coverId, setCoverId] = useState(post?.coverId || null);
+  const [coverAlt, setCoverAlt] = useState(post?.coverAlt || "");
+  const [uploadingCover, setUploadingCover] = useState(false);
   const [githubRecords, setGithubRecords] = useState<GitHubRecord[]>(
     post?.githubRecords || [],
   );
@@ -35,6 +39,7 @@ export function ArticleEditor({
   }, [dirty]);
   async function save(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (busy || uploadingCover) return;
     setBusy(true);
     setMessage("");
     const data = new FormData(event.currentTarget);
@@ -54,6 +59,8 @@ export function ArticleEditor({
         date: new Date(String(data.get("date"))).toISOString(),
         updatedAt: post?.updatedAt,
         githubRecords,
+        coverId,
+        coverAlt,
       };
       const response = await fetch("/api/admin/articles", {
         method: "POST",
@@ -102,6 +109,17 @@ export function ArticleEditor({
         </div>
       )}
       <form onSubmit={save} onChange={() => setDirty(true)}>
+        <CoverEditor
+          id={coverId}
+          alt={coverAlt}
+          disabled={busy}
+          onUploading={setUploadingCover}
+          onChange={(id, alt) => {
+            setCoverId(id);
+            setCoverAlt(alt);
+            setDirty(true);
+          }}
+        />
         <div className="form-field">
           <label htmlFor="title">标题</label>
           <input
@@ -296,7 +314,10 @@ export function ArticleEditor({
             <option value="draft">草稿</option>
             <option value="published">公开发布</option>
           </select>
-          <button className="button" disabled={busy || !categories.length}>
+          <button
+            className="button"
+            disabled={busy || uploadingCover || !categories.length}
+          >
             {busy ? "正在保存…" : "保存文章 →"}
           </button>
         </div>

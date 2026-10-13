@@ -10,6 +10,7 @@ import { GitHubRecords } from "@/components/github-records";
 import { PostActions } from "@/components/post-actions";
 import { getPostReactions } from "@/lib/post-reactions";
 import { getSession } from "@/lib/authorization";
+import { ArticleCover } from "@/components/article-cover";
 export async function generateMetadata({
   params,
 }: {
@@ -27,6 +28,20 @@ export async function generateMetadata({
       description: post.description,
       publishedTime: post.date,
       url: `${site.url}/posts/${post.slug}`,
+      images: post.coverId
+        ? [
+            {
+              url: `/api/media/${post.coverId}`,
+              alt: post.coverAlt || post.title,
+            },
+          ]
+        : undefined,
+    },
+    twitter: {
+      card: post.coverId ? "summary_large_image" : "summary",
+      title: post.title,
+      description: post.description,
+      images: post.coverId ? [`/api/media/${post.coverId}`] : undefined,
     },
     robots: post.demo ? { index: false, follow: true } : undefined,
   };
@@ -63,6 +78,13 @@ export default async function Article({
           </div>
         )}
       </header>
+      {post.coverId && (
+        <ArticleCover
+          id={post.coverId}
+          alt={post.coverAlt || post.title}
+          priority
+        />
+      )}
       <ArticleReader
         articleId={post.id}
         content={post.content}

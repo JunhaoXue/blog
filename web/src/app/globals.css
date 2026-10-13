@@ -12,6 +12,10 @@
   --card-bg: #ffffff;
   --card-hover-bg: #fafafa;
   --card-hover-line: #cccccc;
+  --font-sans:
+    Arial, Helvetica, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei",
+    sans-serif;
+  --title-weight: 500;
   color-scheme: light;
 }
 :root[data-theme="dark"] {
@@ -38,12 +42,11 @@ body {
   margin: 0;
   background: var(--bg);
   color: var(--ink);
-  font-family:
-    -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC",
-    "Microsoft YaHei", sans-serif;
+  font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
-  font-size: 15px;
-  line-height: 1.7;
+  font-size: 16px;
+  line-height: 1.65;
+  text-rendering: optimizeLegibility;
 }
 a {
   color: inherit;
@@ -300,15 +303,15 @@ svg {
   color: var(--muted);
 }
 .post-content h2 {
-  font-size: 20px;
-  line-height: 1.5;
-  font-weight: 600;
-  letter-spacing: -0.3px;
+  font-size: 24px;
+  line-height: 1.4;
+  font-weight: var(--title-weight);
+  letter-spacing: -0.025em;
   margin: 8px 0;
   overflow-wrap: anywhere;
 }
 .post-content p {
-  font-size: 14px;
+  font-size: 15px;
   line-height: 1.8;
   color: var(--muted);
   margin-bottom: 14px;
@@ -508,13 +511,15 @@ svg {
   margin-bottom: 32px;
 }
 .article-header h1 {
-  font-size: 26px;
-  line-height: 1.5;
-  letter-spacing: -0.6px;
+  font-size: clamp(30px, 4vw, 40px);
+  font-weight: var(--title-weight);
+  line-height: 1.35;
+  letter-spacing: -0.035em;
   margin-top: 12px;
 }
 .article-header > p {
-  font-size: 15px;
+  font-size: 16px;
+  line-height: 1.8;
   color: var(--muted);
   margin-bottom: 0;
 }
@@ -531,9 +536,58 @@ svg {
   /* 依据官方文档 prose-content 的正文参数；统一阅读页与后台预览。 */
   color: var(--document-text);
   font-size: 16px;
-  line-height: 1.6;
+  line-height: 1.8;
   letter-spacing: -0.16px;
   overflow-wrap: break-word;
+}
+.article-cover {
+  overflow: hidden;
+  background: var(--panel);
+  aspect-ratio: 16 / 9;
+}
+.article-cover img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.article-cover-hero {
+  border-radius: var(--card-radius);
+  margin-bottom: 40px;
+}
+.post-with-cover {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0;
+  padding: 0;
+  overflow: hidden;
+}
+.post-cover-link {
+  display: block;
+  grid-column: 1 / -1;
+}
+.post-with-cover .post-content {
+  padding: var(--card-padding);
+}
+.post-with-cover .post-arrow {
+  padding: var(--card-padding) var(--card-padding) 0 0;
+}
+.cover-editor {
+  margin: 0 0 28px;
+}
+.article-cover-preview {
+  max-width: 480px;
+  border-radius: 12px;
+  margin-bottom: 20px;
+}
+.cover-editor .form-field:last-of-type {
+  margin-bottom: 12px;
+}
+.page-heading h1,
+.resume-intro h1,
+.admin-heading h1 {
+  font-weight: var(--title-weight);
+  letter-spacing: -0.025em;
 }
 :root[data-theme="dark"] .prose {
   --document-text: var(--ink);
@@ -1472,8 +1526,11 @@ label {
   .post-row {
     gap: 12px;
   }
+  .post-with-cover {
+    gap: 0;
+  }
   .post-content h2 {
-    font-size: 19px;
+    font-size: 21px;
   }
   .post-bottom {
     align-items: flex-start;
@@ -1485,12 +1542,14 @@ label {
     gap: 12px;
     font-size: 11px;
   }
-  .page-heading h1,
-  .article-header h1 {
+  .page-heading h1 {
     font-size: 26px;
   }
+  .article-header h1 {
+    font-size: 30px;
+  }
   .article-header > p {
-    font-size: 14px;
+    font-size: 16px;
   }
   .archive-row {
     gap: 12px;

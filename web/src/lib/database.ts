@@ -100,6 +100,18 @@ export function migrateBlogDatabase() {
           INSERT INTO schema_migrations(version) VALUES (6);
         `);
       }
+      if (
+        !database
+          .prepare("SELECT version FROM schema_migrations WHERE version=7")
+          .get()
+      ) {
+        database.exec(`
+          ALTER TABLE articles ADD COLUMN cover_media_id TEXT REFERENCES media(id);
+          ALTER TABLE articles ADD COLUMN cover_alt TEXT NOT NULL DEFAULT '';
+          CREATE INDEX articles_cover ON articles(cover_media_id);
+          INSERT INTO schema_migrations(version) VALUES (7);
+        `);
+      }
     })
     .immediate();
 }

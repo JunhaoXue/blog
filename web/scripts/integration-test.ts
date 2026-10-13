@@ -20,6 +20,13 @@ const directory = mkdtempSync(path.join(tmpdir(), "junhao-blog-test-"));
 const port = process.env.TEST_PORT || "3001";
 const base = `http://localhost:${port}`;
 const password = randomBytes(18).toString("hex");
+// The cover regression initially hit another project's occupied 3001 port;
+// its homepage looked ready but /archive returned 404. Refuse occupied ports
+// before spawning so a different service can never be mistaken for this test.
+if (await fetch(base).catch(() => null)) {
+  rmSync(directory, { recursive: true, force: true });
+  throw new Error(`Test port ${port} is occupied; choose a free TEST_PORT.`);
+}
 const env = {
   ...process.env,
   BETTER_AUTH_URL: base,
@@ -298,7 +305,7 @@ try {
     "legacy-comment",
   );
   db.exec(
-    "DELETE FROM schema_migrations WHERE version IN (3,6); ALTER TABLE articles DROP COLUMN github_records; DROP INDEX comments_parent; ALTER TABLE comments DROP COLUMN parent_id; ALTER TABLE comments DROP COLUMN anchor;",
+    "DELETE FROM schema_migrations WHERE version IN (3,6,7); ALTER TABLE articles DROP COLUMN github_records; DROP INDEX comments_parent; ALTER TABLE comments DROP COLUMN parent_id; ALTER TABLE comments DROP COLUMN anchor; DROP INDEX articles_cover; ALTER TABLE articles DROP COLUMN cover_media_id; ALTER TABLE articles DROP COLUMN cover_alt;",
   );
   const migrated = spawnSync(
     process.execPath,
@@ -306,6 +313,11 @@ try {
     { env, encoding: "utf8" },
   );
   ok("existing database upgrades", migrated.status, 0);
+  ok(
+    "cover migration preserves legacy articles without assigning images",
+    db.prepare("SELECT cover_media_id,cover_alt FROM articles LIMIT 1").get(),
+    { cover_media_id: null, cover_alt: "" },
+  );
   ok(
     "annotation migration preserves ordinary comments",
     db
@@ -1408,6 +1420,147 @@ try {
     "uploaded image bytes preserved",
     Buffer.from(await download.arrayBuffer()).equals(png),
     true,
+  );
+  const coverRevision = () =>
+    (
+      db.prepare("SELECT updated_at FROM articles WHERE id=?").get(id) as {
+        updated_at: string;
+      }
+    ).updated_at;
+  ok(
+    "nonexistent cover rejected",
+    (
+      await write(
+        "/api/admin/articles",
+        {
+          ...data,
+          id,
+          updatedAt: coverRevision(),
+          coverId: "00000000-0000-4000-8000-000000000001",
+        },
+        adminCookie,
+      )
+    ).status,
+    400,
+  );
+  ok(
+    "external cover URL rejected",
+    (
+      await write(
+        "/api/admin/articles",
+        {
+          ...data,
+          id,
+          updatedAt: coverRevision(),
+          coverId: "https://example.test/image.png",
+        },
+        adminCookie,
+      )
+    ).status,
+    400,
+  );
+  ok(
+    "save article cover",
+    (
+      await write(
+        "/api/admin/articles",
+        {
+          ...data,
+          id,
+          status: "published",
+          updatedAt: coverRevision(),
+          coverId: media.id,
+          coverAlt: "Cover QA accessible description",
+        },
+        adminCookie,
+      )
+    ).status,
+    200,
+  );
+  const coverPage = await (
+    await fetch(base + "/posts/integration-test")
+  ).text();
+  ok(
+    "article renders cover and accessible description",
+    coverPage.includes('alt="Cover QA accessible description"') &&
+      coverPage.includes('class="article-cover article-cover-hero"') &&
+      coverPage.includes(media.url),
+    true,
+  );
+  ok(
+    "cover included in social sharing metadata",
+    coverPage.includes('property="og:image"') &&
+      coverPage.includes('name="twitter:card" content="summary_large_image"'),
+    true,
+  );
+  ok(
+    "home renders article cover",
+    (await (await fetch(base + "/")).text()).includes(
+      'class="article-cover article-cover-card"',
+    ),
+    true,
+  );
+  ok(
+    "cover image deletion blocked",
+    (await write("/api/admin/media", { id: media.id }, adminCookie, "DELETE"))
+      .status,
+    409,
+  );
+  ok(
+    "stale article editor cannot replace cover",
+    (
+      await write(
+        "/api/admin/articles",
+        { ...data, id, updatedAt: "stale", coverId: null },
+        adminCookie,
+      )
+    ).status,
+    409,
+  );
+  ok(
+    "older editor payload preserves cover",
+    (
+      await write(
+        "/api/admin/articles",
+        { ...data, id, status: "published", updatedAt: coverRevision() },
+        adminCookie,
+      )
+    ).status,
+    200,
+  );
+  ok(
+    "cover retained after older payload",
+    (
+      db.prepare("SELECT cover_media_id FROM articles WHERE id=?").get(id) as {
+        cover_media_id: string;
+      }
+    ).cover_media_id,
+    media.id,
+  );
+  ok(
+    "remove article cover",
+    (
+      await write(
+        "/api/admin/articles",
+        {
+          ...data,
+          id,
+          status: "published",
+          updatedAt: coverRevision(),
+          coverId: null,
+          coverAlt: "",
+        },
+        adminCookie,
+      )
+    ).status,
+    200,
+  );
+  ok(
+    "removed cover no longer rendered",
+    (await (await fetch(base + "/posts/integration-test")).text()).includes(
+      'class="article-cover article-cover-hero"',
+    ),
+    false,
   );
   const resumeData = {
     name: "Resume QA Name",
