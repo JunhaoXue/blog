@@ -705,7 +705,7 @@ svg {
   display: flex;
   align-items: center;
   gap: 12px;
-  margin-top: 24px;
+  margin: 0 0 20px;
   min-width: 0;
 }
 .article-author-photo {

@@ -83,8 +83,8 @@ export default async function Article({
             <span>{post.readingMinutes} 分钟阅读</span>
           </div>
           <h1>{post.title}</h1>
-          <p>{post.description}</p>
           <ArticleByline author={author} />
+          <p>{post.description}</p>
           {post.demo && (
             <div className="notice">
               示例文章 · 用于预览新版博客，可在后台替换或删除。
