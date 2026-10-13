@@ -10,7 +10,7 @@ export async function Header() {
   return (
     <SiteNavigation
       posts={getPosts()
-        .slice(0, 12)
+        .filter((post) => !post.demo)
         .map(({ slug, title }) => ({ slug, title }))}
       actions={
         <>

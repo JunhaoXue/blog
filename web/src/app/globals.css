@@ -126,6 +126,8 @@ svg {
   top: 10px;
 }
 .header-inner {
+  max-width: 1200px;
+  margin: auto;
   min-height: 64px;
   padding: 12px 24px;
   display: flex;
@@ -141,8 +143,25 @@ svg {
   border-bottom: 1px solid var(--line);
 }
 .site-content {
-  margin-left: 240px;
   min-width: 0;
+}
+.site-sidebar ~ .site-content {
+  margin-left: 240px;
+}
+.header-primary-navigation {
+  display: flex;
+  gap: 4px;
+  margin-inline: auto;
+  font-size: 14px;
+}
+.header-primary-navigation a {
+  padding: 6px 12px;
+  border-radius: 20px;
+}
+.header-primary-navigation a:hover,
+.header-primary-navigation a[aria-current] {
+  background: var(--panel);
+  color: var(--ink);
 }
 .site-sidebar {
   position: fixed;
@@ -154,21 +173,11 @@ svg {
   overscroll-behavior: contain;
   background: var(--bg);
 }
-.sidebar-search {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 10px 12px;
-  margin-bottom: 24px;
-  background: var(--panel);
-  border-radius: 8px;
-  font-size: 13px;
-  color: var(--muted);
-}
 .sidebar-links {
   display: grid;
   gap: 4px;
   font-size: 14px;
+  color: var(--muted);
 }
 .sidebar-links a {
   display: block;
@@ -183,16 +192,12 @@ svg {
   color: var(--ink);
   background: var(--panel);
 }
-.sidebar-posts {
-  margin: 8px 0 12px 12px;
-  padding: 0 0 0 8px;
+.sidebar-articles {
+  display: grid;
+  gap: 4px;
+  margin: 0;
+  padding: 0;
   list-style: none;
-  border-left: 1px solid var(--line);
-  font-size: 13px;
-  color: var(--muted);
-}
-.sidebar-posts a {
-  padding: 8px;
 }
 /* 首次桌面预览中，后定义的通用 .icon-button display 覆盖了菜单隐藏。
    使用组合选择器，让桌面隐藏与手机显示都高于通用按钮规则。 */
@@ -223,7 +228,7 @@ svg {
 .sidebar-drawer-heading {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-end;
   gap: 12px;
   margin-bottom: 20px;
 }
@@ -1530,7 +1535,7 @@ label {
   color: var(--muted);
 }
 @media (max-width: 1000px) {
-  .site-content {
+  .site-sidebar ~ .site-content {
     margin-left: 0;
   }
   .site-sidebar {
@@ -1540,8 +1545,17 @@ label {
     display: inline-flex;
   }
   .header-inner {
+    flex-wrap: wrap;
     padding: 10px 16px;
     gap: 12px;
+  }
+  .header-primary-navigation {
+    order: 3;
+    width: 100%;
+    margin: 0;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 0;
   }
   .main-shell {
     padding: 0 24px;
@@ -1607,6 +1621,12 @@ label {
   }
   .brand {
     font-size: 18px;
+  }
+  .header-primary-navigation {
+    font-size: 13px;
+  }
+  .header-primary-navigation a {
+    padding: 6px 10px;
   }
   .header-actions {
     margin-left: auto;
