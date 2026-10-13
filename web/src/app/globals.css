@@ -15,6 +15,8 @@
   --font-sans:
     Arial, Helvetica, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei",
     sans-serif;
+  --nav-hover: rgb(0 0 0 / 8%);
+  --nav-rail: rgb(0 0 0 / 8%);
   --title-weight: 500;
   color-scheme: light;
 }
@@ -29,6 +31,8 @@
   --card-bg: #262626;
   --card-hover-bg: #2c2c2c;
   --card-hover-line: #555555;
+  --nav-hover: rgb(255 255 255 / 12%);
+  --nav-rail: rgb(255 255 255 / 8%);
   color-scheme: dark;
 }
 * {
@@ -146,7 +150,7 @@ svg {
   min-width: 0;
 }
 .site-sidebar ~ .site-content {
-  margin-left: 240px;
+  margin-left: 218px;
 }
 .header-primary-navigation {
   display: flex;
@@ -166,35 +170,41 @@ svg {
 .site-sidebar {
   position: fixed;
   inset: 65px auto 0 0;
-  width: 240px;
-  padding: 24px 16px;
-  border-right: 1px solid var(--line);
+  width: 218px;
+  padding: 8px 12px 24px;
   overflow-y: auto;
   overscroll-behavior: contain;
   background: var(--bg);
+  scrollbar-width: none;
+}
+.site-sidebar::-webkit-scrollbar {
+  display: none;
 }
 .sidebar-links {
   display: grid;
-  gap: 4px;
   font-size: 14px;
-  color: var(--muted);
+  color: var(--ink);
 }
 .sidebar-links a {
   display: block;
-  padding: 8px 12px;
+  padding: 6px 12px;
   border-radius: 8px;
-  line-height: 1.6;
+  line-height: 20px;
+  font-weight: 400;
+  transition:
+    background-color 150ms,
+    color 150ms;
   overflow-wrap: anywhere;
 }
 .sidebar-links a:hover,
 .sidebar-links a[data-active],
 .sidebar-links a[aria-current] {
   color: var(--ink);
-  background: var(--panel);
+  background: var(--nav-hover);
 }
 .sidebar-articles {
   display: grid;
-  gap: 4px;
+  gap: 1px;
   margin: 0;
   padding: 0;
   list-style: none;
@@ -605,8 +615,8 @@ svg {
 .article-with-toc {
   display: grid;
   grid-template-columns: minmax(0, 768px) 200px;
-  gap: 40px;
-  max-width: 1008px;
+  gap: 48px;
+  max-width: 1016px;
   align-items: start;
 }
 .article-layout .reading-shell {
@@ -627,7 +637,16 @@ svg {
   overflow-y: auto;
   overscroll-behavior: contain;
   scrollbar-width: thin;
-  border-left: 1px solid var(--line);
+}
+.article-toc nav {
+  position: relative;
+}
+.article-toc nav::before {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 2.15px;
+  background: var(--nav-rail);
 }
 .article-toc-mobile {
   display: none;
@@ -641,15 +660,41 @@ svg {
   display: block;
   padding: 8px 12px;
   padding-left: calc(12px + var(--toc-indent, 0) * 12px);
-  font-size: 13px;
-  line-height: 1.6;
+  font-size: 14px;
+  line-height: 20px;
   color: var(--muted);
   overflow-wrap: anywhere;
 }
 :is(.article-toc, .article-toc-mobile) a:hover,
 :is(.article-toc, .article-toc-mobile) a[aria-current] {
   color: var(--ink);
-  background: var(--panel);
+}
+.article-toc ol {
+  margin-left: 12px;
+}
+.article-toc li {
+  margin-left: calc(var(--toc-indent, 0) * 12px);
+}
+.article-toc li + li {
+  margin-top: 12px;
+}
+.article-toc a {
+  position: relative;
+  padding: 0 0 0 8px;
+  transition: color 150ms;
+}
+.article-toc a[aria-current]::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: calc(-12px - var(--toc-indent, 0) * 12px);
+  width: 2.15px;
+  background: var(--ink);
+}
+.article-toc-mobile a:hover,
+.article-toc-mobile a[aria-current] {
+  background: var(--nav-hover);
 }
 @media (max-width: 1279px) {
   .article-with-toc {
