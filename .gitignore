@@ -12,3 +12,5 @@ web/test-results/
 web/next-env.d.ts
 *.tsbuildinfo
 *.log
+# Local server operations contain environment-specific deployment information.
+/ops/cloud/

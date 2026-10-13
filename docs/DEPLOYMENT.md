@@ -1,85 +1,33 @@
 # 部署到 xuejunhao.com
 
-本轮已完成本机部署。待提供服务器账号和部署位置后，再执行正式发布及 DNS 变更。2026-10-10 的只读检查发现 `xuejunhao.com` 和 `www.xuejunhao.com` 均解析到 `47.84.35.132`，HTTPS 证书不匹配；不能据此认定这台机器就是本博客的目标服务器。
+2026-10-13 已上线：[https://xuejunhao.com](https://xuejunhao.com)。后台入口为 `/admin`，沿用原账号密码。文章、简历和照片已按本人授权迁移，主域与 www 统一跳转至 HTTPS 主域，证书自动续期和每日备份已启用。
 
-## Node.js 单实例部署
+## 部署方式
 
-1. 在服务器安装 Node.js 24，用非 root 用户取得 GitHub 中的新版源码。
-2. `cd web && npm ci`，运行时目录选用本机持久磁盘，SQLite 不放在网络共享磁盘。
-3. 私有 `web/.env.local` 配置 `BETTER_AUTH_SECRET`（至少 32 随机字符）、`BETTER_AUTH_URL=https://xuejunhao.com`、`DATABASE_PATH` 和 `UPLOADS_PATH`。把该文件权限设为 600。
-4. 运行 `npm run setup` 初始化官方认证表与博客数据。若指定 `ADMIN_EMAIL`、`ADMIN_PASSWORD` 环境变量，它们只用于首次创建管理员；否则随机密码保存在私有 `local-admin.txt`。
-5. 运行 `npm run build`，由进程管理服务以 `npm start` 启动，绑定 `127.0.0.1:3000`。后续部署只替换代码与构建目录，保留密钥、数据库和图片。
-6. 配置反向代理及有效 HTTPS 证书，检查 `/api/health`、登录、图片、文章和评论链路后，切换域名。
+使用 Node.js 24、专用非登录用户、systemd 和 Nginx，以单实例运行 Next.js standalone。应用仅监听回环地址，由 Nginx 提供公网 HTTPS；代码发布目录、持久化内容与认证配置分别管理。后续内容以云端后台为准，本机开发副本不自动双向同步。
 
-本实现适用于个人博客的单机部署，不适合多个容器共享 SQLite 写入。后续若需要水平扩容，应先将博客数据访问层与 Better Auth 数据库适配器迁移到 PostgreSQL，并单独验证迁移数据与会话。
+`web/scripts/package-linux.mjs` 将本机 standalone 构建整理为 Linux x64 发布包，校验 Linux Sharp 包完整性，保留 SQLite 相对链接，并拒绝私有运行文件和越界链接。
 
-## Docker
-
-在项目根目录保存私有 `.env`：
-
-```dotenv
-BETTER_AUTH_SECRET=your-at-least-32-character-random-secret
-BETTER_AUTH_URL=https://xuejunhao.com
-```
-
-先创建 `web/data`、`web/uploads` 并让容器的 node 用户（UID 1000）拥有写入权限，然后执行：
+从 `web/` 执行 `BLOG_STANDALONE=1 npm run build`，准备锁文件对应的 Linux Sharp 压缩包后，执行：
 
 ```bash
-docker compose up -d --build
-docker compose logs -f blog
+node scripts/package-linux.mjs <新发布目录> <原生依赖包目录> <输出压缩包>
 ```
 
-容器只将 3000 端口暴露到主机回环地址，通过反向代理提供公网访问。初始账号密码在持久卷 `web/data/local-admin.txt`（600 权限）；如果迁入本机资料，保留原管理员和原密钥。容器启动自动执行幂等初始化；构建不包含 `.env`、本机数据库、图片或管理员密码。
+发布包须在目标平台验证数据库、图片依赖及实际编译路由，再启用反向代理。服务器不需要安装开发依赖或现场构建。发布包和 GitHub 仓库均不包含数据库、照片、私有环境配置或管理员凭据。
 
-Dockerfile 与 Compose 配置已提供；若未在验收记录中注明容器构建通过，不应将其视为已执行的部署结果。
+## 更新与恢复
 
-## Nginx 示例
+更新前取得完整备份并核对数据库迁移兼容性；新代码放入新的发布目录，保持线上持久化内容和认证密钥，只重启博客。验证健康接口、文章、简历、图片及登录入口后再切换正式代理。不要用旧本机数据库覆盖云端新内容。
 
-有效证书路径需按实际签发结果调整。仅信任自己维护的反向代理；不要直接向公网开放应用端口。
+每日备份包含在线数据库快照、关联图片和私有认证配置，完整性检查成功后才清理超过30天的完整旧备份。首次独立副本恢复已验证通过。当前备份保存在部署服务器，尚无异地备份。
 
-```nginx
-server {
-    listen 80;
-    server_name xuejunhao.com www.xuejunhao.com;
-    return 301 https://xuejunhao.com$request_uri;
-}
-server {
-    listen 443 ssl;
-    server_name www.xuejunhao.com;
-    ssl_certificate /etc/letsencrypt/live/xuejunhao.com/fullchain.pem;
-    ssl_certificate_key /etc/letsencrypt/live/xuejunhao.com/privkey.pem;
-    return 301 https://xuejunhao.com$request_uri;
-}
-server {
-    listen 443 ssl;
-    server_name xuejunhao.com;
-    ssl_certificate /etc/letsencrypt/live/xuejunhao.com/fullchain.pem;
-    ssl_certificate_key /etc/letsencrypt/live/xuejunhao.com/privkey.pem;
-    client_max_body_size 11m;
-    location / {
-        proxy_pass http://127.0.0.1:3000;
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $remote_addr;
-        proxy_set_header X-Forwarded-Proto $scheme;
-    }
-}
-```
+代码回退不自动回退数据库。维护模式回退保留内容、证书与备份；数据库恢复须单独核对适配版本与恢复时间，停止博客后使用独立恢复副本验证。
 
-## DNS 和证书
+服务器地址、实际运行目录、服务配置和完整运维记录保存在本机私有资料中，不在公开仓库披露。
 
-| 主机 | 类型 | 值 |
-| --- | --- | --- |
-| `@` | A | 最终服务器公网 IPv4 |
-| `www` | CNAME | `xuejunhao.com` |
+## 其他环境
 
-IPv6 只有在服务器实际提供同等 HTTPS 服务时才添加 AAAA；已有 AAAA 需一并核对，防止部分访问落到旧站。域名验证和证书签发完成后再将 HTTP 跳转到 HTTPS。正式认证 URL、canonical、RSS 和站点地图均统一使用 `https://xuejunhao.com`；不要填写 GitHub 仓库地址作为 DNS 目标。
+仓库提供 Dockerfile 与 Compose 配置，运行前配置私有 `BETTER_AUTH_SECRET`、`BETTER_AUTH_URL` 及持久化数据库、图片目录，确保应用用户具备写入权限。不能将多个写入实例连接到同一个 SQLite 数据库；水平扩容需要先迁移到 PostgreSQL。
 
-## 备份与恢复
-
-- 在 `web/` 执行 `npm run backup`，在线数据库快照及图片副本保存到 `data/backups/<时间>/`。
-- 定期将快照、图片和私有密钥备份到另一台机器；仓库中的代码无法代替内容备份。
-- 恢复时停止应用，把数据库快照、图片和原密钥恢复到配置目录，处理旧 `-wal`、`-shm` 文件后重启，并验证登录和文章。
-- 架构升级前备份。代码回退不会自动回退数据库结构，恢复方案要与实际版本对应。
-
-公网发布前应补充站点运营所需的隐私告知、邮件验证和密码找回渠道，以及与服务器地区匹配的必要手续；当前本机版未配置邮件服务，也未替用户操作 DNS、购买服务或申请证书。
+本次实际部署采用 standalone 和 systemd，未以 Docker 构建结果作为验收依据。当前未配置邮件验证与密码找回服务。上线验收见 [2026-10-13](deploy/2026-10-13.md)。
