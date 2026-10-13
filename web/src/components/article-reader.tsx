@@ -23,6 +23,7 @@ import {
 } from "@/lib/annotations";
 import { formatDate } from "@/lib/site";
 import { Comments } from "./comments";
+import { articleHeadingsPlugin } from "@/lib/article-headings";
 
 type SelectionDraft = { anchor: TextAnchor; x: number; y: number };
 
@@ -283,7 +284,7 @@ export function ArticleReader({
       >
         <ReactMarkdown
           remarkPlugins={[remarkGfm]}
-          rehypePlugins={[plugin]}
+          rehypePlugins={[articleHeadingsPlugin, plugin]}
           components={{
             mark: ({ children, node, ...props }) => {
               const ids = String(node?.properties.dataCommentIds || "");

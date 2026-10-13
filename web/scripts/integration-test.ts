@@ -17,6 +17,10 @@ import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { resumeLayoutPlugin } from "../src/lib/resume-layout";
 import { articleAuthor } from "../src/lib/article-author";
+import {
+  articleHeadings,
+  articleHeadingsPlugin,
+} from "../src/lib/article-headings";
 const directory = mkdtempSync(path.join(tmpdir(), "junhao-blog-test-"));
 const port = process.env.TEST_PORT || "3001";
 const base = `http://localhost:${port}`;
@@ -934,6 +938,58 @@ try {
   const richSource =
     annotationMarkdown +
     '\n\n- [x] 任务\n\n`code & text`\n\n<script>alert("xss")</script>';
+  const outlineSource =
+    "# 开始\n\n#### **小节**与[链接](https://example.test)\n\n#### **小节**与[链接](https://example.test)\n\n```md\n## 非标题\n```\n\n###### 深层 `code`";
+  const outline = articleHeadings(outlineSource);
+  ok(
+    "outline includes rich titles, repeated headings and all heading levels",
+    outline,
+    [
+      { id: "article-section-1", title: "开始", depth: 1 },
+      { id: "article-section-2", title: "小节与链接", depth: 4 },
+      { id: "article-section-3", title: "小节与链接", depth: 4 },
+      { id: "article-section-4", title: "深层 code", depth: 6 },
+    ],
+  );
+  ok(
+    "article without headings has no outline",
+    articleHeadings("普通正文\n\n**加粗**"),
+    [],
+  );
+  const outlineText = articleText(outlineSource);
+  const outlineHtml = renderToStaticMarkup(
+    createElement(ReactMarkdown, {
+      remarkPlugins: [remarkGfm],
+      rehypePlugins: [
+        articleHeadingsPlugin,
+        annotationPlugin([
+          {
+            id: "heading-quote",
+            start: outlineText.indexOf("小节"),
+            end: outlineText.indexOf("小节") + 2,
+          },
+        ]),
+      ],
+      children: outlineSource,
+    }),
+  );
+  ok(
+    "outline anchors match rendered headings uniquely",
+    [...outlineHtml.matchAll(/id="(article-section-\d+)"/g)].map(
+      (match) => match[1],
+    ),
+    outline.map((heading) => heading.id),
+  );
+  ok(
+    "outline anchors preserve rendered text and annotation offsets",
+    stripMarkup(outlineHtml),
+    outlineText,
+  );
+  ok(
+    "heading annotations retain their discussion reference",
+    outlineHtml.includes('data-comment-ids="heading-quote"'),
+    true,
+  );
   const richHtml = renderToStaticMarkup(
     createElement(ReactMarkdown, {
       remarkPlugins: [remarkGfm],
@@ -1530,11 +1586,10 @@ try {
     await fetch(base + "/posts/integration-test")
   ).text();
   ok(
-    "article renders cover and accessible description",
-    coverPage.includes('alt="Cover QA accessible description"') &&
-      coverPage.includes('class="article-cover article-cover-hero"') &&
-      coverPage.includes(media.url),
-    true,
+    "article detail omits large cover while keeping cover metadata",
+    coverPage.includes('class="article-cover article-cover-hero"') ||
+      coverPage.includes('<img src="' + media.url + '"'),
+    false,
   );
   ok(
     "cover included in social sharing metadata",

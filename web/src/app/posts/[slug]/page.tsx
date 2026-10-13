@@ -10,7 +10,8 @@ import { GitHubRecords } from "@/components/github-records";
 import { PostActions } from "@/components/post-actions";
 import { getPostReactions } from "@/lib/post-reactions";
 import { getSession } from "@/lib/authorization";
-import { ArticleCover } from "@/components/article-cover";
+import { ArticleToc } from "@/components/article-toc";
+import { articleHeadings } from "@/lib/article-headings";
 import { ArticleByline } from "@/components/article-byline";
 import { articleAuthor } from "@/lib/article-author";
 import { getResume } from "@/lib/resume";
@@ -62,68 +63,68 @@ export default async function Article({
   const session = await getSession();
   const reactions = getPostReactions("article", post.id, session?.user.id);
   const author = articleAuthor(getResume());
+  const headings = articleHeadings(post.content);
   return (
-    <div className="reading-shell">
-      <Link className="back-link" href="/">
-        ← 返回文章
-      </Link>
-      <header className="article-header">
-        <div className="post-meta">
-          <Link href={`/?category=${encodeURIComponent(post.category)}`}>
-            {post.category}
-          </Link>
-          <span>·</span>
-          <time dateTime={post.date}>{formatDate(post.date)}</time>
-          <span>·</span>
-          <span>{post.readingMinutes} 分钟阅读</span>
-        </div>
-        <h1>{post.title}</h1>
-        <p>{post.description}</p>
-        <ArticleByline author={author} />
-        {post.demo && (
-          <div className="notice">
-            示例文章 · 用于预览新版博客，可在后台替换或删除。
+    <div
+      className={`article-layout${headings.length ? " article-with-toc" : ""}`}
+    >
+      <div className="reading-shell">
+        <Link className="back-link" href="/">
+          ← 返回文章
+        </Link>
+        <header className="article-header">
+          <div className="post-meta">
+            <Link href={`/?category=${encodeURIComponent(post.category)}`}>
+              {post.category}
+            </Link>
+            <span>·</span>
+            <time dateTime={post.date}>{formatDate(post.date)}</time>
+            <span>·</span>
+            <span>{post.readingMinutes} 分钟阅读</span>
           </div>
-        )}
-      </header>
-      {post.coverId && (
-        <ArticleCover
-          id={post.coverId}
-          alt={post.coverAlt || post.title}
-          priority
-        />
-      )}
-      <ArticleReader
-        articleId={post.id}
-        content={post.content}
-        text={articleText(post.content)}
-        revision={createHash("sha256").update(post.content).digest("hex")}
-        comments={getComments(post.id)}
-      >
-        <p className="article-copyright">
-          © {author.name} · 未经作者允许，不得转载。
-        </p>
-        <div className="article-end">
-          <div className="tags">
-            {post.tags.map((tag) => (
-              <Link key={tag} href={`/?tag=${encodeURIComponent(tag)}`}>
-                # {tag}
-              </Link>
-            ))}
+          <h1>{post.title}</h1>
+          <p>{post.description}</p>
+          <ArticleByline author={author} />
+          {post.demo && (
+            <div className="notice">
+              示例文章 · 用于预览新版博客，可在后台替换或删除。
+            </div>
+          )}
+        </header>
+        <ArticleToc headings={headings} compact />
+        <ArticleReader
+          articleId={post.id}
+          content={post.content}
+          text={articleText(post.content)}
+          revision={createHash("sha256").update(post.content).digest("hex")}
+          comments={getComments(post.id)}
+        >
+          <p className="article-copyright">
+            © {author.name} · 未经作者允许，不得转载。
+          </p>
+          <div className="article-end">
+            <div className="tags">
+              {post.tags.map((tag) => (
+                <Link key={tag} href={`/?tag=${encodeURIComponent(tag)}`}>
+                  # {tag}
+                </Link>
+              ))}
+            </div>
           </div>
-        </div>
-        <PostActions
-          key={session?.user.id || "guest"}
-          target="article"
-          id={post.id}
-          path={`/posts/${post.slug}`}
-          title={post.title}
-          signedIn={Boolean(session)}
-          initialCount={reactions.count}
-          initialLiked={reactions.liked}
-        />
-        <GitHubRecords records={post.githubRecords} />
-      </ArticleReader>
+          <PostActions
+            key={session?.user.id || "guest"}
+            target="article"
+            id={post.id}
+            path={`/posts/${post.slug}`}
+            title={post.title}
+            signedIn={Boolean(session)}
+            initialCount={reactions.count}
+            initialLiked={reactions.liked}
+          />
+          <GitHubRecords records={post.githubRecords} />
+        </ArticleReader>
+      </div>
+      <ArticleToc headings={headings} />
     </div>
   );
 }
