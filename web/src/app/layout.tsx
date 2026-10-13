@@ -34,10 +34,12 @@ export default function RootLayout({
           跳到内容
         </a>
         <Header />
-        <main id="main" className="main-shell">
-          {children}
-        </main>
-        <Footer />
+        <div className="site-content">
+          <main id="main" className="main-shell" tabIndex={-1}>
+            {children}
+          </main>
+          <Footer />
+        </div>
       </body>
     </html>
   );
