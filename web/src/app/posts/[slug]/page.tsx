@@ -11,6 +11,9 @@ import { PostActions } from "@/components/post-actions";
 import { getPostReactions } from "@/lib/post-reactions";
 import { getSession } from "@/lib/authorization";
 import { ArticleCover } from "@/components/article-cover";
+import { ArticleByline } from "@/components/article-byline";
+import { articleAuthor } from "@/lib/article-author";
+import { getResume } from "@/lib/resume";
 export async function generateMetadata({
   params,
 }: {
@@ -18,15 +21,18 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const post = getPost((await params).slug);
   if (!post) return { title: "文章不存在" };
+  const author = articleAuthor(getResume());
   return {
     title: post.title,
     description: post.description,
+    authors: [{ name: author.name, url: `${site.url}${author.url}` }],
     alternates: { canonical: `${site.url}/posts/${post.slug}` },
     openGraph: {
       type: "article",
       title: post.title,
       description: post.description,
       publishedTime: post.date,
+      authors: [`${site.url}${author.url}`],
       url: `${site.url}/posts/${post.slug}`,
       images: post.coverId
         ? [
@@ -55,6 +61,7 @@ export default async function Article({
   if (!post) notFound();
   const session = await getSession();
   const reactions = getPostReactions("article", post.id, session?.user.id);
+  const author = articleAuthor(getResume());
   return (
     <div className="reading-shell">
       <Link className="back-link" href="/">
@@ -72,6 +79,7 @@ export default async function Article({
         </div>
         <h1>{post.title}</h1>
         <p>{post.description}</p>
+        <ArticleByline author={author} />
         {post.demo && (
           <div className="notice">
             示例文章 · 用于预览新版博客，可在后台替换或删除。
@@ -92,6 +100,9 @@ export default async function Article({
         revision={createHash("sha256").update(post.content).digest("hex")}
         comments={getComments(post.id)}
       >
+        <p className="article-copyright">
+          © {author.name} · 未经作者允许，不得转载。
+        </p>
         <div className="article-end">
           <div className="tags">
             {post.tags.map((tag) => (

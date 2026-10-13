@@ -16,6 +16,7 @@ import { renderToStaticMarkup } from "react-dom/server";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { resumeLayoutPlugin } from "../src/lib/resume-layout";
+import { articleAuthor } from "../src/lib/article-author";
 const directory = mkdtempSync(path.join(tmpdir(), "junhao-blog-test-"));
 const port = process.env.TEST_PORT || "3001";
 const base = `http://localhost:${port}`;
@@ -142,6 +143,48 @@ try {
 
 保留自定义段落。`;
   const portfolioHtml = renderResumeMarkdown(portfolioFixture);
+  const authorFixture = {
+    name: "Author QA",
+    headline: "Private QA role",
+    summary: "Private QA summary",
+    content:
+      portfolioFixture +
+      "\n\n## 工作经历\n\n**Previous team · Product role**  \n2020.01 – 2022.01\n\nWorked on products.",
+    photoId: "qa-photo",
+    published: true,
+    revision: 1,
+    updatedAt: "",
+  };
+  const authorProfile = articleAuthor(authorFixture);
+  ok(
+    "author derives current work from explicitly ongoing entry",
+    authorProfile.current,
+    "产品团队 · 产品经理",
+  );
+  ok(
+    "author labels ended employment separately",
+    authorProfile.previous,
+    "Previous team · Product role",
+  );
+  ok(
+    "withdrawn resume cannot expose author identity or work",
+    articleAuthor({ ...authorFixture, published: false }),
+    {
+      name: "Junhao Xue",
+      photoId: null,
+      current: "",
+      previous: "",
+      url: "/about",
+    },
+  );
+  ok(
+    "free-form resume cannot fabricate current employment",
+    articleAuthor({
+      ...authorFixture,
+      content: "## 工作经历\n\nA free-form paragraph.",
+    }).current,
+    "",
+  );
   ok(
     "resume layouts group experience and projects",
     portfolioHtml.includes('class="resume-work-row"') &&
@@ -691,6 +734,12 @@ try {
     "article sharing control visible",
     postButtons.includes("post-actions-buttons") &&
       postButtons.includes("分享"),
+    true,
+  );
+  ok(
+    "articles always display permission notice and author link",
+    postButtons.includes("未经作者允许，不得转载。") &&
+      postButtons.includes('rel="author"'),
     true,
   );
   const githubPage = await (

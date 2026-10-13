@@ -523,6 +523,42 @@ svg {
   color: var(--muted);
   margin-bottom: 0;
 }
+.article-byline {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 24px;
+  min-width: 0;
+}
+.article-author-photo {
+  width: 40px;
+  height: 40px;
+  object-fit: cover;
+  border-radius: 50%;
+  flex: none;
+}
+.article-author-name {
+  font-size: 14px;
+  font-weight: 500;
+}
+.article-author-work {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px 16px;
+  margin: 3px 0 0;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+.article-copyright {
+  margin: 32px 0 20px;
+  padding-top: 20px;
+  border-top: 1px solid var(--line);
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.7;
+}
 .notice {
   font-size: 13px;
   padding: 14px 16px;

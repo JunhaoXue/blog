@@ -41,6 +41,26 @@ function entryHeader(node: RootContent) {
   return { title: title.children, date };
 }
 
+/** Read only explicitly dated work entries; free-form prose is never guessed. */
+export function resumeEmployment(tree: Root) {
+  const entries: { title: string; date: string }[] = [];
+  let inWork = false;
+  for (const node of tree.children) {
+    if (node.type === "element" && ["h1", "h2"].includes(node.tagName)) {
+      inWork = node.tagName === "h2" && text(node).trim() === "工作经历";
+      continue;
+    }
+    if (!inWork) continue;
+    const header = entryHeader(node);
+    if (header?.date)
+      entries.push({
+        title: header.title.map(text).join("").trim(),
+        date: header.date,
+      });
+  }
+  return entries;
+}
+
 function layout(nodes: RootContent[], projects: boolean): Element | null {
   const blocks = compact(nodes);
   const entries: Element[] = [];
