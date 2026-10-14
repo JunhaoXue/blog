@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { BackLink } from "@/components/back-link";
 import { notFound } from "next/navigation";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
@@ -36,9 +36,7 @@ export default async function Discussion({
   }[];
   return (
     <div className="reading-shell">
-      <Link className="back-link" href="/discussions">
-        ← 返回讨论
-      </Link>
+      <BackLink href="/discussions" label="返回讨论" />
       <div className="article-header">
         <span className="post-meta">
           {item.author} · {formatDate(item.created_at)}

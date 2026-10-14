@@ -2,7 +2,8 @@
 import Link from "next/link";
 import { useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
-import { ThumbsUp } from "lucide-react";
+import { ThumbsUp, ArrowRight } from "lucide-react";
+import { IconLabel } from "./icon-label";
 import { authClient } from "@/lib/auth-client";
 import { formatDate } from "@/lib/site";
 import type { PublicComment } from "@/lib/annotations";
@@ -129,14 +130,18 @@ export function Comments({
           <div>
             <small>评论审核后公开，请保持友善。</small>
             <button className="button" disabled={busy}>
-              {busy ? "正在提交…" : "发表评论 →"}
+              {busy ? (
+                "正在提交…"
+              ) : (
+                <IconLabel icon={ArrowRight}>发表评论</IconLabel>
+              )}
             </button>
           </div>
         </form>
       ) : (
         <div className="notice">
           <Link href={`/login?next=${encodeURIComponent(pathname)}`}>
-            登录后发表评论 →
+            <IconLabel icon={ArrowRight}>登录后发表评论</IconLabel>
           </Link>
         </div>
       )}

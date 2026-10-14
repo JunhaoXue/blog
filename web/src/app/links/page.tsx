@@ -1,4 +1,6 @@
 import { database } from "@/lib/database";
+import { ArrowUpRight } from "lucide-react";
+import { IconLabel } from "@/components/icon-label";
 export const metadata = { title: "友链" };
 export default function Links() {
   const links = database.prepare("SELECT * FROM links ORDER BY name").all() as {
@@ -21,7 +23,9 @@ export default function Links() {
             target="_blank"
             rel="noopener noreferrer"
           >
-            <h2>{link.name} ↗</h2>
+            <h2>
+              <IconLabel icon={ArrowUpRight}>{link.name}</IconLabel>
+            </h2>
           </a>
         ))}
       </div>

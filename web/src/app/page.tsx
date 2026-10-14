@@ -1,5 +1,6 @@
 import Link from "next/link";
-import { Search, ArrowUp } from "lucide-react";
+import { Search, ArrowUp, X } from "lucide-react";
+import { IconLabel } from "@/components/icon-label";
 import { getPosts, getCategories } from "@/lib/content";
 import { PostList } from "@/components/post-list";
 export default async function Home({
@@ -68,7 +69,7 @@ export default async function Home({
             href="/"
             aria-label={`清除标签 ${query.tag} 的筛选`}
           >
-            # {query.tag} ×
+            <IconLabel icon={X}># {query.tag}</IconLabel>
           </Link>
         )}
         {query.category && query.tag && (

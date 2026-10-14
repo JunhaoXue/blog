@@ -1,6 +1,7 @@
 import type { BetterAuthOptions } from "better-auth";
 import { nextCookies } from "better-auth/next-js";
 import { database } from "./database";
+import { site } from "./site";
 
 if (
   !process.env.BETTER_AUTH_SECRET ||
@@ -12,7 +13,7 @@ if (
 }
 
 export const authOptions = {
-  appName: "Junhao Xue Blog",
+  appName: site.title,
   database,
   baseURL: process.env.BETTER_AUTH_URL || "http://localhost:3000",
   secret: process.env.BETTER_AUTH_SECRET,

@@ -1,5 +1,7 @@
 import { getPosts } from "@/lib/content";
 import { PostList } from "@/components/post-list";
+import { Search as SearchIcon } from "lucide-react";
+import { IconLabel } from "@/components/icon-label";
 export const metadata = { title: "搜索" };
 export default async function Search({
   searchParams,
@@ -30,7 +32,11 @@ export default async function Search({
           defaultValue={q}
           maxLength={200}
         />
-        <button className="button">搜索 →</button>
+        <button className="button">
+          <IconLabel icon={SearchIcon} leading>
+            搜索
+          </IconLabel>
+        </button>
       </form>
       {q && (
         <>

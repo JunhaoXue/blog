@@ -10,7 +10,8 @@ import {
   type CSSProperties,
 } from "react";
 import { usePathname, useRouter } from "next/navigation";
-import { MessageSquarePlus, X, ArrowUpRight } from "lucide-react";
+import { MessageSquarePlus, X, ArrowUpRight, ArrowRight } from "lucide-react";
+import { IconLabel } from "./icon-label";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { authClient } from "@/lib/auth-client";
@@ -34,6 +35,7 @@ export function ArticleReader({
   revision,
   comments,
   children,
+  headingNumbering = false,
 }: {
   articleId: string;
   content: string;
@@ -41,6 +43,7 @@ export function ArticleReader({
   revision: string;
   comments: PublicComment[];
   children: React.ReactNode;
+  headingNumbering?: boolean;
 }) {
   const reader = useRef<HTMLElement>(null);
   const dialog = useRef<HTMLDialogElement>(null);
@@ -284,7 +287,10 @@ export function ArticleReader({
       >
         <ReactMarkdown
           remarkPlugins={[remarkGfm]}
-          rehypePlugins={[articleHeadingsPlugin, plugin]}
+          rehypePlugins={[
+            [articleHeadingsPlugin, { numbered: headingNumbering }],
+            plugin,
+          ]}
           components={{
             mark: ({ children, node, ...props }) => {
               const ids = String(node?.properties.dataCommentIds || "");
@@ -477,7 +483,9 @@ export function ArticleReader({
             !session && (
               <div className="notice">
                 <Link href={`/login?next=${encodeURIComponent(pathname)}`}>
-                  登录后{draft ? "添加划线评论" : "参与讨论"} →
+                  <IconLabel icon={ArrowRight}>
+                    登录后{draft ? "添加划线评论" : "参与讨论"}
+                  </IconLabel>
                 </Link>
               </div>
             )

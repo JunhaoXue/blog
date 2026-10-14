@@ -18,18 +18,20 @@ export type Post = {
   githubRecords: GitHubRecord[];
   coverId: string | null;
   coverAlt: string;
+  headingNumbering: boolean;
 };
 type PostRow = Omit<
   Post,
-  "tags" | "demo" | "readingMinutes" | "githubRecords"
+  "tags" | "demo" | "readingMinutes" | "githubRecords" | "headingNumbering"
 > & {
   tags: string;
   githubRecords: string;
   demo: number;
+  headingNumbering: number;
 };
 const select = `SELECT a.id, a.slug, a.title, a.description, a.content, c.name AS category,
   c.id AS categoryId, a.tags, a.status, a.published_at AS date, a.demo, a.updated_at AS updatedAt, a.github_records AS githubRecords,
-  a.cover_media_id AS coverId, a.cover_alt AS coverAlt
+  a.cover_media_id AS coverId, a.cover_alt AS coverAlt, a.heading_numbering AS headingNumbering
   FROM articles a JOIN categories c ON c.id = a.category_id`;
 function convert(row: PostRow): Post {
   return {
@@ -37,6 +39,7 @@ function convert(row: PostRow): Post {
     tags: JSON.parse(row.tags),
     githubRecords: JSON.parse(row.githubRecords),
     demo: Boolean(row.demo),
+    headingNumbering: Boolean(row.headingNumbering),
     readingMinutes: Math.max(1, Math.ceil(row.content.length / 500)),
   };
 }

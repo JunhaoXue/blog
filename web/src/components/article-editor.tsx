@@ -8,6 +8,10 @@ import type { Post } from "@/lib/content";
 import { GitHubRecords } from "@/components/github-records";
 import type { GitHubRecord } from "@/lib/github-records";
 import { CoverEditor } from "./cover-editor";
+import { BackLink } from "./back-link";
+import { IconLabel } from "./icon-label";
+import { ArrowRight } from "lucide-react";
+import { articleHeadingsPlugin } from "@/lib/article-headings";
 export function ArticleEditor({
   post,
   categories,
@@ -23,6 +27,9 @@ export function ArticleEditor({
   const [coverId, setCoverId] = useState(post?.coverId || null);
   const [coverAlt, setCoverAlt] = useState(post?.coverAlt || "");
   const [uploadingCover, setUploadingCover] = useState(false);
+  const [headingNumbering, setHeadingNumbering] = useState(
+    post?.headingNumbering || false,
+  );
   const [githubRecords, setGithubRecords] = useState<GitHubRecord[]>(
     post?.githubRecords || [],
   );
@@ -61,6 +68,7 @@ export function ArticleEditor({
         githubRecords,
         coverId,
         coverAlt,
+        headingNumbering,
       };
       const response = await fetch("/api/admin/articles", {
         method: "POST",
@@ -91,16 +99,15 @@ export function ArticleEditor({
         <div>
           <h1>{post ? "编辑文章" : "写一篇文章"}</h1>
         </div>
-        <Link
+        <BackLink
           href="/admin/articles"
-          className="small-link"
+          label="返回列表"
+          className="editor-back-link"
           onClick={(event) => {
             if (dirty && !window.confirm("有未保存的修改，确认离开？"))
               event.preventDefault();
           }}
-        >
-          返回列表
-        </Link>
+        />
       </div>
       {!categories.length && (
         <div className="notice">
@@ -211,6 +218,29 @@ export function ArticleEditor({
         <p className="muted">
           图片先在“图片”页面上传，再把生成的 Markdown 粘贴到正文。
         </p>
+        <div className="form-field">
+          <label
+            className="heading-numbering-option"
+            htmlFor="heading-numbering"
+          >
+            <input
+              id="heading-numbering"
+              name="headingNumbering"
+              type="checkbox"
+              checked={headingNumbering}
+              disabled={busy}
+              aria-describedby="heading-numbering-help"
+              onChange={(event) => {
+                setHeadingNumbering(event.target.checked);
+                setDirty(true);
+              }}
+            />
+            标题自动编号
+          </label>
+          <p id="heading-numbering-help" className="muted">
+            按标题层级显示1、1.1、1.1.1，正文和目录同步；手动序号、有序列表及引用内标题保留原样。
+          </p>
+        </div>
         <button
           type="button"
           className="button secondary"
@@ -220,7 +250,14 @@ export function ArticleEditor({
         </button>
         {preview && (
           <div className="editor-preview prose">
-            <ReactMarkdown remarkPlugins={[remarkGfm]}>{content}</ReactMarkdown>
+            <ReactMarkdown
+              remarkPlugins={[remarkGfm]}
+              rehypePlugins={[
+                [articleHeadingsPlugin, { numbered: headingNumbering }],
+              ]}
+            >
+              {content}
+            </ReactMarkdown>
           </div>
         )}
         <fieldset className="github-editor">
@@ -318,7 +355,11 @@ export function ArticleEditor({
             className="button"
             disabled={busy || uploadingCover || !categories.length}
           >
-            {busy ? "正在保存…" : "保存文章 →"}
+            {busy ? (
+              "正在保存…"
+            ) : (
+              <IconLabel icon={ArrowRight}>保存文章</IconLabel>
+            )}
           </button>
         </div>
         {message && (

@@ -352,7 +352,7 @@ try {
     "legacy-comment",
   );
   db.exec(
-    "DELETE FROM schema_migrations WHERE version IN (3,6,7); ALTER TABLE articles DROP COLUMN github_records; DROP INDEX comments_parent; ALTER TABLE comments DROP COLUMN parent_id; ALTER TABLE comments DROP COLUMN anchor; DROP INDEX articles_cover; ALTER TABLE articles DROP COLUMN cover_media_id; ALTER TABLE articles DROP COLUMN cover_alt;",
+    "DELETE FROM schema_migrations WHERE version IN (3,6,7,8); ALTER TABLE articles DROP COLUMN github_records; DROP INDEX comments_parent; ALTER TABLE comments DROP COLUMN parent_id; ALTER TABLE comments DROP COLUMN anchor; DROP INDEX articles_cover; ALTER TABLE articles DROP COLUMN cover_media_id; ALTER TABLE articles DROP COLUMN cover_alt; ALTER TABLE articles DROP COLUMN heading_numbering;",
   );
   const migrated = spawnSync(
     process.execPath,
@@ -360,6 +360,11 @@ try {
     { env, encoding: "utf8" },
   );
   ok("existing database upgrades", migrated.status, 0);
+  ok(
+    "heading numbering migration preserves unnumbered legacy articles",
+    db.prepare("SELECT heading_numbering FROM articles LIMIT 1").get(),
+    { heading_numbering: 0 },
+  );
   ok(
     "cover migration preserves legacy articles without assigning images",
     db.prepare("SELECT cover_media_id,cover_alt FROM articles LIMIT 1").get(),
@@ -541,9 +546,29 @@ try {
     ).status,
     400,
   );
-  const created = await write("/api/admin/articles", data, adminCookie);
+  ok(
+    "heading numbering rejects non-boolean input",
+    (
+      await write(
+        "/api/admin/articles",
+        { ...data, headingNumbering: "on" },
+        adminCookie,
+      )
+    ).status,
+    400,
+  );
+  const created = await write(
+    "/api/admin/articles",
+    { ...data, headingNumbering: true },
+    adminCookie,
+  );
   ok("create draft", created.status, 200);
   const { id } = await created.json();
+  ok(
+    "new article persists heading numbering choice",
+    db.prepare("SELECT heading_numbering FROM articles WHERE id=?").get(id),
+    { heading_numbering: 1 },
+  );
   ok(
     "GitHub records persisted and canonicalized",
     JSON.parse(
@@ -988,6 +1013,82 @@ try {
   ok(
     "heading annotations retain their discussion reference",
     outlineHtml.includes('data-comment-ids="heading-quote"'),
+    true,
+  );
+  const numberedSource =
+    "> #### 导读\n\n## 第一章\n\n### 子节\n\n#### 深层\n\n### 下个子节\n\n## 2. 已有手动编号\n\n## 第三章\n\n1. ### 列表标题";
+  const numberedOutline = articleHeadings(numberedSource, { numbered: true });
+  ok(
+    "heading numbers follow hierarchy and preserve manual, quote and list headings",
+    numberedOutline.map(({ number }) => number),
+    [undefined, "1.", "1.1", "1.1.1", "1.2", undefined, "3.", undefined],
+  );
+  ok(
+    "enabling numbering preserves heading anchors and titles",
+    numberedOutline.map(({ number, ...heading }) => heading),
+    articleHeadings(numberedSource),
+  );
+  ok(
+    "numbering fills skipped heading levels deterministically",
+    articleHeadings("## 主标题\n\n##### 跳级标题", { numbered: true }).map(
+      ({ number }) => number,
+    ),
+    ["1.", "1.1.1.1"],
+  );
+  ok(
+    "empty content remains without numbered headings",
+    articleHeadings("普通正文", { numbered: true }),
+    [],
+  );
+  const numberedText = articleText(numberedSource);
+  const numberedHtml = renderToStaticMarkup(
+    createElement(ReactMarkdown, {
+      remarkPlugins: [remarkGfm],
+      rehypePlugins: [
+        [articleHeadingsPlugin, { numbered: true }],
+        annotationPlugin([
+          {
+            id: "numbered-heading-quote",
+            start: numberedText.indexOf("子节"),
+            end: numberedText.indexOf("子节") + 2,
+          },
+        ]),
+      ],
+      children: numberedSource,
+    }),
+  );
+  ok(
+    "numbered heading attributes match the outline",
+    [...numberedHtml.matchAll(/data-heading-number="([^"]+)"/g)].map(
+      (match) => match[1],
+    ),
+    numberedOutline.flatMap(({ number }) => (number ? [number] : [])),
+  );
+  ok(
+    "heading numbering keeps rendered text and comment offsets intact",
+    stripMarkup(numberedHtml),
+    numberedText,
+  );
+  ok(
+    "numbered headings retain existing underline comments",
+    numberedHtml.includes('data-comment-ids="numbered-heading-quote"'),
+    true,
+  );
+  const unnumberedHtml = renderToStaticMarkup(
+    createElement(ReactMarkdown, {
+      remarkPlugins: [remarkGfm],
+      rehypePlugins: [[articleHeadingsPlugin, { numbered: false }]],
+      children: numberedSource,
+    }),
+  );
+  ok(
+    "disabling numbering removes generated attributes",
+    unnumberedHtml.includes("data-heading-number"),
+    false,
+  );
+  ok(
+    "ordered list items can still contain heading elements",
+    unnumberedHtml.includes("<ol>\n<li>\n<h3"),
     true,
   );
   const richHtml = renderToStaticMarkup(
@@ -1598,6 +1699,22 @@ try {
     true,
   );
   ok(
+    "public article renders heading numbers and numbered outline",
+    coverPage.includes('data-heading-number="1."') &&
+      coverPage.includes('class="toc-heading-number">1.</span>'),
+    true,
+  );
+  const numberingEditor = await (
+    await fetch(base + `/admin/articles/${id}`, {
+      headers: { cookie: adminCookie },
+    })
+  ).text();
+  ok(
+    "editor restores the saved heading numbering choice",
+    /id="heading-numbering"[^>]*checked/.test(numberingEditor),
+    true,
+  );
+  ok(
     "home renders article cover",
     (await (await fetch(base + "/")).text()).includes(
       'class="article-cover article-cover-card"',
@@ -1640,6 +1757,44 @@ try {
       }
     ).cover_media_id,
     media.id,
+  );
+  ok(
+    "older editors cannot reset a saved heading numbering choice",
+    db.prepare("SELECT heading_numbering FROM articles WHERE id=?").get(id),
+    { heading_numbering: 1 },
+  );
+  ok(
+    "heading numbering can be disabled explicitly",
+    (
+      await write(
+        "/api/admin/articles",
+        {
+          ...data,
+          id,
+          status: "published",
+          updatedAt: coverRevision(),
+          headingNumbering: false,
+        },
+        adminCookie,
+      )
+    ).status,
+    200,
+  );
+  ok(
+    "disabled article no longer renders generated heading numbers",
+    (await (await fetch(base + "/posts/integration-test")).text()).includes(
+      "data-heading-number",
+    ),
+    false,
+  );
+  ok(
+    "changing heading numbering preserves article content",
+    (
+      db.prepare("SELECT content FROM articles WHERE id=?").get(id) as {
+        content: string;
+      }
+    ).content,
+    data.content,
   );
   ok(
     "remove article cover",

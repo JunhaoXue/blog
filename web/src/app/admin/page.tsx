@@ -1,5 +1,7 @@
 import { requireAdmin } from "@/lib/authorization";
 import Link from "next/link";
+import { Plus, ArrowUpRight } from "lucide-react";
+import { IconLabel } from "@/components/icon-label";
 import { database } from "@/lib/database";
 import { getPosts } from "@/lib/content";
 import { formatDate } from "@/lib/site";
@@ -26,7 +28,9 @@ export default async function Dashboard() {
           <h1>写作工作台</h1>
         </div>
         <Link className="button" href="/admin/articles/new">
-          ＋ 写文章
+          <IconLabel icon={Plus} leading>
+            写文章
+          </IconLabel>
         </Link>
       </div>
       <div className="stat-grid">
@@ -62,7 +66,9 @@ export default async function Dashboard() {
                 </td>
                 <td>{formatDate(post.date)}</td>
                 <td>
-                  <Link href={`/admin/articles/${post.id}`}>编辑 ↗</Link>
+                  <Link href={`/admin/articles/${post.id}`}>
+                    <IconLabel icon={ArrowUpRight}>编辑</IconLabel>
+                  </Link>
                 </td>
               </tr>
             ))}

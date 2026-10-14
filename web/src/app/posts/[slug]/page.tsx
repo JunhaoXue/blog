@@ -15,6 +15,8 @@ import { articleHeadings } from "@/lib/article-headings";
 import { ArticleByline } from "@/components/article-byline";
 import { articleAuthor } from "@/lib/article-author";
 import { getResume } from "@/lib/resume";
+import { ArticleCopy } from "@/components/article-copy";
+import { BackLink } from "@/components/back-link";
 export async function generateMetadata({
   params,
 }: {
@@ -30,6 +32,7 @@ export async function generateMetadata({
     alternates: { canonical: `${site.url}/posts/${post.slug}` },
     openGraph: {
       type: "article",
+      siteName: site.title,
       title: post.title,
       description: post.description,
       publishedTime: post.date,
@@ -63,23 +66,25 @@ export default async function Article({
   const session = await getSession();
   const reactions = getPostReactions("article", post.id, session?.user.id);
   const author = articleAuthor(getResume());
-  const headings = articleHeadings(post.content);
+  const headings = articleHeadings(post.content, {
+    numbered: post.headingNumbering,
+  });
   return (
     <div
       className={`article-layout${headings.length ? " article-with-toc" : ""}`}
     >
       <div className="reading-shell">
-        <Link className="back-link" href="/">
-          ← 返回文章
-        </Link>
+        <div className="article-utility-bar">
+          <BackLink href="/" label="返回文章" />
+        </div>
         <header className="article-header">
           <div className="post-meta">
+            <time dateTime={post.date}>{formatDate(post.date)}</time>
+            <span aria-hidden="true">·</span>
             <Link href={`/?category=${encodeURIComponent(post.category)}`}>
               {post.category}
             </Link>
-            <span>·</span>
-            <time dateTime={post.date}>{formatDate(post.date)}</time>
-            <span>·</span>
+            <span aria-hidden="true">·</span>
             <span>{post.readingMinutes} 分钟阅读</span>
           </div>
           <h1>{post.title}</h1>
@@ -98,6 +103,7 @@ export default async function Article({
           text={articleText(post.content)}
           revision={createHash("sha256").update(post.content).digest("hex")}
           comments={getComments(post.id)}
+          headingNumbering={post.headingNumbering}
         >
           <p className="article-copyright">
             © {author.name} · 未经作者允许，不得转载。
@@ -124,7 +130,12 @@ export default async function Article({
           <GitHubRecords records={post.githubRecords} />
         </ArticleReader>
       </div>
-      <ArticleToc headings={headings} />
+      <aside className="article-rail" aria-label="文章目录与操作">
+        <ArticleToc headings={headings} />
+        <ArticleCopy
+          markdown={`# ${post.title}\n\n${post.description}\n\n作者：${author.name}\n\n${post.content}`}
+        />
+      </aside>
     </div>
   );
 }

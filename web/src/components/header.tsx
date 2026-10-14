@@ -14,13 +14,24 @@ export async function Header() {
         .map(({ slug, title }) => ({ slug, title }))}
       actions={
         <>
+          <div className="header-account-actions">
+            <AccountMenu name={session?.user.name} role={session?.user.role} />
+          </div>
+          <div className="header-theme">
+            <ThemeToggle />
+          </div>
           <Link
             className="icon-button header-search"
             href="/search"
             aria-label="搜索文章"
           >
-            <Search size={19} />
+            <span className="header-search-label">搜索文章</span>
+            <Search size={16} aria-hidden="true" />
           </Link>
+        </>
+      }
+      menuActions={
+        <>
           <ThemeToggle />
           <AccountMenu name={session?.user.name} role={session?.user.role} />
         </>

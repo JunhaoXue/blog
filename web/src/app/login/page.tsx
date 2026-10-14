@@ -2,6 +2,8 @@
 import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { authClient } from "@/lib/auth-client";
+import { ArrowRight } from "lucide-react";
+import { IconLabel } from "@/components/icon-label";
 export default function Login() {
   const [register, setRegister] = useState(false);
   const [message, setMessage] = useState("");
@@ -89,7 +91,13 @@ export default function Login() {
           </div>
         )}
         <button className="button" disabled={busy}>
-          {busy ? "请稍候…" : register ? "创建账号 →" : "登录 →"}
+          {busy ? (
+            "请稍候…"
+          ) : (
+            <IconLabel icon={ArrowRight}>
+              {register ? "创建账号" : "登录"}
+            </IconLabel>
+          )}
         </button>
       </form>
       <button

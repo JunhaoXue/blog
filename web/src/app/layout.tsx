@@ -5,10 +5,11 @@ import "./globals.css";
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
   metadataBase: new URL(site.url),
-  title: { default: site.title, template: `%s · ${site.name}` },
+  title: { default: site.title, template: `%s · ${site.title}` },
   description: site.description,
   openGraph: {
     title: site.title,
+    siteName: site.title,
     description: site.description,
     type: "website",
     locale: "zh_CN",

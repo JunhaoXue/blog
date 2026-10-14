@@ -1,5 +1,7 @@
 import { requireAdmin } from "@/lib/authorization";
 import Link from "next/link";
+import { Plus } from "lucide-react";
+import { IconLabel } from "@/components/icon-label";
 import { getPosts } from "@/lib/content";
 import { formatDate } from "@/lib/site";
 import { AdminAction } from "@/components/admin-action";
@@ -16,7 +18,9 @@ export default async function Articles() {
           </p>
         </div>
         <Link className="button" href="/admin/articles/new">
-          ＋ 写文章
+          <IconLabel icon={Plus} leading>
+            写文章
+          </IconLabel>
         </Link>
       </div>
       <div className="admin-table-wrap">

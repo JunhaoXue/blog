@@ -4,6 +4,8 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { Resume } from "@/lib/resume";
 import { ResumeView } from "./resume-view";
+import { ArrowUpRight, ArrowRight } from "lucide-react";
+import { IconLabel } from "./icon-label";
 
 export function ResumeEditor({
   initial,
@@ -108,7 +110,7 @@ export function ResumeEditor({
               event.preventDefault();
           }}
         >
-          查看公开页面 ↗
+          <IconLabel icon={ArrowUpRight}>查看公开页面</IconLabel>
         </Link>
       </div>
       <form onSubmit={save}>
@@ -240,7 +242,13 @@ export function ResumeEditor({
               <option value="published">公开发布</option>
             </select>
             <button className="button" disabled={locked}>
-              {uploading ? "照片上传中…" : busy ? "保存中…" : "保存简历 →"}
+              {uploading ? (
+                "照片上传中…"
+              ) : busy ? (
+                "保存中…"
+              ) : (
+                <IconLabel icon={ArrowRight}>保存简历</IconLabel>
+              )}
             </button>
           </div>
         </fieldset>

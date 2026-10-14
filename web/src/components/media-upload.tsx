@@ -1,6 +1,8 @@
 "use client";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { ArrowRight } from "lucide-react";
+import { IconLabel } from "./icon-label";
 export function MediaUpload() {
   const [message, setMessage] = useState("");
   const [busy, setBusy] = useState(false);
@@ -40,7 +42,7 @@ export function MediaUpload() {
           required
         />
         <button className="button" disabled={busy}>
-          {busy ? "上传中…" : "上传图片 →"}
+          {busy ? "上传中…" : <IconLabel icon={ArrowRight}>上传图片</IconLabel>}
         </button>
       </form>
       {message && (

@@ -1,5 +1,7 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
+import { ArrowRight } from "lucide-react";
+import { IconLabel } from "@/components/icon-label";
 import { getSession } from "@/lib/authorization";
 import { AccountForm } from "@/components/account-form";
 export const metadata = {
@@ -16,7 +18,7 @@ export default async function Account() {
       {session.user.role === "admin" && (
         <p>
           <Link href="/admin" className="small-link">
-            进入管理后台 →
+            <IconLabel icon={ArrowRight}>进入管理后台</IconLabel>
           </Link>
         </p>
       )}

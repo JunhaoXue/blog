@@ -4,7 +4,15 @@ import { useEffect, useState } from "react";
 export function ThemeToggle() {
   const [dark, setDark] = useState(false);
   useEffect(() => {
-    setDark(document.documentElement.dataset.theme === "dark");
+    const sync = () =>
+      setDark(document.documentElement.dataset.theme === "dark");
+    sync();
+    const observer = new MutationObserver(sync);
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ["data-theme"],
+    });
+    return () => observer.disconnect();
   }, []);
   function toggle() {
     const value = !dark;
@@ -20,7 +28,11 @@ export function ThemeToggle() {
       aria-label={dark ? "切换浅色主题" : "切换深色主题"}
       onClick={toggle}
     >
-      {dark ? <Sun size={19} /> : <Moon size={19} />}
+      {dark ? (
+        <Sun size={16} aria-hidden="true" />
+      ) : (
+        <Moon size={16} aria-hidden="true" />
+      )}
     </button>
   );
 }

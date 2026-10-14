@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { ArrowUpRight } from "lucide-react";
 import { getPosts } from "@/lib/content";
 import { formatDate } from "@/lib/site";
 export const metadata = { title: "归档" };
@@ -21,7 +22,7 @@ export default function Archive() {
               {post.title}
               {post.demo && <small>示例</small>}
             </span>
-            <span aria-hidden="true">↗</span>
+            <ArrowUpRight size={16} aria-hidden="true" focusable="false" />
           </Link>
         ))}
       </div>

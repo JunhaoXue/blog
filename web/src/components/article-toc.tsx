@@ -69,6 +69,9 @@ export function ArticleToc({
                     ?.removeAttribute("open");
               }}
             >
+              {heading.number && (
+                <span className="toc-heading-number">{heading.number}</span>
+              )}
               {heading.title}
             </a>
           </li>

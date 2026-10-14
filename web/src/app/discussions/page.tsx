@@ -1,4 +1,6 @@
 import Link from "next/link";
+import { ArrowUpRight } from "lucide-react";
+import { IconLabel } from "@/components/icon-label";
 import { database } from "@/lib/database";
 import { DiscussionForm } from "@/components/discussion-form";
 import { formatDate } from "@/lib/site";
@@ -28,7 +30,9 @@ export default function Discussions() {
           <span className="post-meta">
             {item.author} · {formatDate(item.created_at)}
           </span>
-          <h2>{item.title} ↗</h2>
+          <h2>
+            <IconLabel icon={ArrowUpRight}>{item.title}</IconLabel>
+          </h2>
         </Link>
       ))}
       {!discussions.length && (

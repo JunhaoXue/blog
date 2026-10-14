@@ -1,6 +1,8 @@
 "use client";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { ArrowRight } from "lucide-react";
+import { IconLabel } from "./icon-label";
 export function SettingsForm({
   type,
   initial,
@@ -82,7 +84,13 @@ export function SettingsForm({
           </div>
         )}
         <button className="button" disabled={busy}>
-          {busy ? "保存中…" : initial ? "保存修改 →" : "添加 →"}
+          {busy ? (
+            "保存中…"
+          ) : (
+            <IconLabel icon={ArrowRight}>
+              {initial ? "保存修改" : "添加"}
+            </IconLabel>
+          )}
         </button>
       </form>
       {message && (

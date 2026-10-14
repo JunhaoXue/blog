@@ -112,6 +112,16 @@ export function migrateBlogDatabase() {
           INSERT INTO schema_migrations(version) VALUES (7);
         `);
       }
+      if (
+        !database
+          .prepare("SELECT version FROM schema_migrations WHERE version=8")
+          .get()
+      ) {
+        database.exec(`
+          ALTER TABLE articles ADD COLUMN heading_numbering INTEGER NOT NULL DEFAULT 0 CHECK(heading_numbering IN (0,1));
+          INSERT INTO schema_migrations(version) VALUES (8);
+        `);
+      }
     })
     .immediate();
 }

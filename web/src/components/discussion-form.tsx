@@ -3,6 +3,8 @@ import Link from "next/link";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { authClient } from "@/lib/auth-client";
+import { ArrowRight } from "lucide-react";
+import { IconLabel } from "./icon-label";
 export function DiscussionForm() {
   const { data: session } = authClient.useSession();
   const [busy, setBusy] = useState(false);
@@ -34,7 +36,9 @@ export function DiscussionForm() {
   if (!session)
     return (
       <div className="notice">
-        <Link href="/login?next=/discussions">登录后发起一个话题 →</Link>
+        <Link href="/login?next=/discussions">
+          <IconLabel icon={ArrowRight}>登录后发起一个话题</IconLabel>
+        </Link>
       </div>
     );
   return (
@@ -53,7 +57,7 @@ export function DiscussionForm() {
         />
       </div>
       <button className="button" disabled={busy}>
-        {busy ? "正在发布…" : "发起讨论 →"}
+        {busy ? "正在发布…" : <IconLabel icon={ArrowRight}>发起讨论</IconLabel>}
       </button>
       {message && (
         <div role="alert" className="form-message error">

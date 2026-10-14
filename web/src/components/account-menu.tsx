@@ -2,12 +2,14 @@
 import Link from "next/link";
 import { authClient } from "@/lib/auth-client";
 import { useRouter } from "next/navigation";
+import { ArrowUpRight } from "lucide-react";
+import { IconLabel } from "./icon-label";
 export function AccountMenu({ name, role }: { name?: string; role?: string }) {
   const router = useRouter();
   if (!name)
     return (
       <Link className="small-link" href="/login">
-        登录 <span aria-hidden>↗</span>
+        <IconLabel icon={ArrowUpRight}>登录</IconLabel>
       </Link>
     );
   return (

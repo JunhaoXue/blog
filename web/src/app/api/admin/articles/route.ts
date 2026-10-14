@@ -23,6 +23,7 @@ const input = z.object({
   githubRecords: githubRecordsSchema.default([]),
   coverId: z.uuid().nullable().optional(),
   coverAlt: z.string().trim().max(240).optional(),
+  headingNumbering: z.boolean().optional(),
 });
 export async function POST(request: Request) {
   return endpoint(async () => {
@@ -44,6 +45,7 @@ export async function POST(request: Request) {
         tags=?,status=?,published_at=?,updated_at=?,github_records=?,
         cover_media_id=CASE WHEN ? THEN ? ELSE cover_media_id END,
         cover_alt=CASE WHEN ? THEN ? ELSE cover_alt END,
+        heading_numbering=CASE WHEN ? THEN ? ELSE heading_numbering END,
         demo=0 WHERE id=? AND updated_at=?`,
             )
             .run(
@@ -61,6 +63,8 @@ export async function POST(request: Request) {
               data.coverId ?? null,
               data.coverAlt !== undefined ? 1 : 0,
               data.coverAlt ?? "",
+              data.headingNumbering !== undefined ? 1 : 0,
+              data.headingNumbering ? 1 : 0,
               id,
               data.updatedAt || "",
             );
@@ -72,8 +76,8 @@ export async function POST(request: Request) {
         } else {
           database
             .prepare(
-              `INSERT INTO articles (id,slug,title,description,content,category_id,tags,status,published_at,created_at,updated_at,github_records,cover_media_id,cover_alt)
-        VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
+              `INSERT INTO articles (id,slug,title,description,content,category_id,tags,status,published_at,created_at,updated_at,github_records,cover_media_id,cover_alt,heading_numbering)
+        VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
             )
             .run(
               id,
@@ -90,6 +94,7 @@ export async function POST(request: Request) {
               JSON.stringify(data.githubRecords),
               data.coverId ?? null,
               data.coverAlt ?? "",
+              data.headingNumbering ? 1 : 0,
             );
         }
         return { id };
