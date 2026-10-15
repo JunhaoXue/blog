@@ -44,7 +44,10 @@ export async function POST(request: Request) {
             data.revision,
           );
         if (!result.changes)
-          throw new HttpError(409, "简历已被其他页面修改，请刷新后重新编辑。");
+          throw new HttpError(
+            409,
+            "个人资料已被其他页面修改，请刷新后重新编辑。",
+          );
         return { revision: data.revision + 1 };
       })
       .immediate();

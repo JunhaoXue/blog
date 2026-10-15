@@ -40,7 +40,7 @@ export default async function AdminLayout({
         </Link>
         <Link href="/admin/resume">
           <FileText size={16} />
-          简历
+          关于我
         </Link>
         <Link href="/admin/users">
           <Users size={16} />

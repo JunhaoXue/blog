@@ -9,8 +9,7 @@ import { site } from "@/lib/site";
 type NavigationPost = { slug: string; title: string };
 const links = [
   { href: "/", label: "文章" },
-  { href: "/resume", label: "简历" },
-  { href: "/about", label: "关于" },
+  { href: "/resume", label: "关于我" },
 ];
 
 function PrimaryNavigation({

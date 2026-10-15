@@ -178,7 +178,7 @@ try {
       photoId: null,
       current: "",
       previous: "",
-      url: "/about",
+      url: "/resume",
     },
   );
   ok(
@@ -288,7 +288,11 @@ try {
     "/robots.txt",
     "/api/health",
   ])
-    ok(`${url} serves`, (await fetch(base + url)).status, 200);
+    ok(
+      `${url} returns expected status`,
+      (await fetch(base + url)).status,
+      url === "/about" ? 404 : 200,
+    );
   ok(
     "unknown article returns 404",
     (await fetch(base + "/posts/missing")).status,

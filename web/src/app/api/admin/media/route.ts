@@ -114,7 +114,7 @@ export async function DELETE(request: Request) {
         )
           throw new HttpError(
             409,
-            "图片仍被简历使用，请先移除简历中的引用并保存。",
+            "图片仍被个人资料使用，请先移除个人资料中的引用并保存。",
           );
         const filename = path.join(
           /* turbopackIgnore: true */ process.env.UPLOADS_PATH ||

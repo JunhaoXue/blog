@@ -7,10 +7,10 @@ export const dynamic = "force-dynamic";
 export function generateMetadata(): Metadata {
   const resume = getResume();
   return {
-    title: "简历",
+    title: "关于我",
     description: resume.published
       ? resume.summary || `${resume.name}的个人履历。`
-      : "个人简历",
+      : "关于我的个人介绍与履历。",
     alternates: { canonical: `${site.url}/resume` },
     robots: { index: resume.published, follow: true },
   };
@@ -23,8 +23,8 @@ export default function ResumePage() {
         <ResumeView resume={resume} />
       ) : (
         <div className="page-heading">
-          <h1>简历</h1>
-          <p>简历尚未发布。</p>
+          <h1>关于我</h1>
+          <p>个人资料尚未发布。</p>
         </div>
       )}
     </div>

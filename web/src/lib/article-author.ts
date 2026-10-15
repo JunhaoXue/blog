@@ -16,7 +16,7 @@ export function articleAuthor(resume: Resume) {
       photoId: null,
       current: "",
       previous: "",
-      url: "/about",
+      url: "/resume",
     };
   const processor = unified().use(remarkParse).use(remarkGfm).use(remarkRehype);
   const tree = processor.runSync(processor.parse(resume.content)) as Root;

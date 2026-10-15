@@ -5,13 +5,7 @@ import { getResume } from "@/lib/resume";
 export const dynamic = "force-dynamic";
 export default function sitemap(): MetadataRoute.Sitemap {
   const resume = getResume();
-  return [
-    "",
-    "/archive",
-    "/about",
-    "/links",
-    ...(resume.published ? ["/resume"] : []),
-  ]
+  return ["", "/archive", "/links", ...(resume.published ? ["/resume"] : [])]
     .map((route) => ({ url: `${site.url}${route}` }))
     .concat(
       getPosts()

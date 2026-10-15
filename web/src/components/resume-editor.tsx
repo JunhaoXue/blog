@@ -60,7 +60,7 @@ export function ResumeEditor({
         ...current,
       ]);
       change("photoId", result.id);
-      setMessage("照片已上传，保存简历后生效。");
+      setMessage("照片已上传，保存个人资料后生效。");
     } catch (error) {
       setFailed(true);
       setMessage(error instanceof Error ? error.message : "照片上传失败。");
@@ -87,8 +87,8 @@ export function ResumeEditor({
       setDirty(false);
       setMessage(
         resume.published
-          ? "简历已保存并公开。"
-          : "简历草稿已保存，访客不可见。",
+          ? "个人资料已保存并公开。"
+          : "个人资料草稿已保存，访客不可见。",
       );
       router.refresh();
     } catch (error) {
@@ -101,7 +101,7 @@ export function ResumeEditor({
   return (
     <>
       <div className="admin-heading">
-        <h1>简历</h1>
+        <h1>关于我</h1>
         <Link
           href="/resume"
           className="small-link"
@@ -115,13 +115,13 @@ export function ResumeEditor({
       </div>
       <form onSubmit={save}>
         <fieldset className="resume-fields" disabled={locked}>
-          <legend className="sr-only">编辑简历</legend>
+          <legend className="sr-only">编辑个人资料</legend>
           <div className="resume-photo-editor surface-card">
             {resume.photoId && (
               <img
                 className="resume-photo"
                 src={`/api/media/${resume.photoId}`}
-                alt="当前简历照片"
+                alt="当前个人照片"
                 width={144}
                 height={144}
               />
@@ -219,7 +219,7 @@ export function ResumeEditor({
             className="button secondary"
             onClick={() => setPreview((current) => !current)}
           >
-            {preview ? "收起预览" : "预览简历"}
+            {preview ? "收起预览" : "预览个人资料"}
           </button>
           {preview && (
             <div className="editor-preview">
@@ -247,7 +247,7 @@ export function ResumeEditor({
               ) : busy ? (
                 "保存中…"
               ) : (
-                <IconLabel icon={ArrowRight}>保存简历</IconLabel>
+                <IconLabel icon={ArrowRight}>保存个人资料</IconLabel>
               )}
             </button>
           </div>

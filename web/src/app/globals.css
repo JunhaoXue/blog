@@ -391,9 +391,13 @@ svg {
   .header-actions .header-search {
     order: 1;
     width: 208px;
+    height: 38px;
     justify-content: space-between;
     padding: 8px 16px;
     border: 1px solid var(--line);
+    /* 宽屏截图暴露了圆形图标按钮的50%圆角被拉成椭圆；
+       非正方形搜索入口使用固定大圆角，保持中段平直、两端半圆。 */
+    border-radius: 999px;
     font-size: 14px;
   }
   .header-search-label {
@@ -695,8 +699,9 @@ svg {
   width: 44px;
   height: 44px;
   flex-shrink: 0;
-  border-radius: 50%;
-  color: var(--muted);
+  border-radius: 999px;
+  background: var(--panel);
+  color: var(--ink);
   margin-bottom: 32px;
 }
 .back-link:hover {
@@ -845,7 +850,7 @@ svg {
   width: 140px;
 }
 .article-header {
-  padding-top: 36px;
+  padding-top: 24px;
   margin-bottom: 40px;
   text-align: left;
 }
@@ -881,7 +886,7 @@ svg {
   position: relative;
   max-width: 768px;
   margin: auto;
-  padding: 0 0 72px;
+  padding: 24px 0 72px;
 }
 .article-with-toc {
   display: grid;
@@ -910,7 +915,7 @@ svg {
 }
 .article-copy {
   position: absolute;
-  top: 0;
+  top: 24px;
   right: 0;
 }
 .article-with-toc .article-copy {
@@ -1091,7 +1096,9 @@ svg {
   margin: 12px 0 16px;
 }
 .article-header > p {
-  max-width: 576px;
+  /* 导读沿用576px介绍宽度，正文列却可到768px，导致仍有空间就提前换行；
+     跟随正文容器宽度，保持相同左右边界及窄屏自适应。 */
+  max-width: none;
   margin-inline: 0;
   font-size: 18px;
   line-height: 1.65;
