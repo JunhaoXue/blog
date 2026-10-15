@@ -1,135 +1,74 @@
-<p align="center">
-<a href="https://pigjian.com/">
-<img src="https://pigjian.com/uploads/Logo.png" alt="Powered By Jiajian Chan" width="160">
-</a>
-</p>
+# Junhao's Blog
 
-<p align="center">🎈 PJ Blog is an open source blog built with Laravel and Vue.js. <a href="https://pigjian.com">https://pigjian.com</a></p>
+基于 Next.js 16.4、React 19.3、TypeScript、Better Auth 1.7 和 SQLite 的个人博客，面向 `xuejunhao.com`，前台和管理后台由同一套全栈应用提供。
 
-<p align="center">
-  <b>Special thanks to the generous sponsorship by:</b>
-  <br><br>
-  <a href="https://www.upyun.com">
-    <img src="https://pigjian.com/storage/logo/upyun.png" width=300>
-  </a>
-</p>
+## 本机使用
 
-# PJ Blog
+需要 Node.js 24。本机项目位于 `/Users/sensespark/Workspace/blog`。
 
-This is a powerful blog, I try to build the blog more beautiful, more convenient. 
-
-`Laravel 5.*` and `Vuejs 2.*` combined with the establishment of a good response and quickly dashboard, the dashboard made through the `Vuejs` component development.
-
-I believe it will be better and better. If you are interested in this, you can join and enjoy it.
-
-Here is [documents](https://manual.pigjian.com/)
-
-[Example](http://example.pigjian.com)
-
-## Basic Features
-
-- Manage users, articles, discussions and media
-- Statistical tables
-- Categorize articles
-- Label classification
-- Content moderation
-- Own comments system
-- Multi-language switching
-- Markdown Editor
-- Roles & Permissions
-- and more...
-
-[PJ Blog](https://github.com/jcc/blog) Laravel 5.*
-
-## Server Requirements
-
-- PHP >= 7.1.0
-- Node >= 6.x
-- OpenSSL PHP Extension
-- PDO PHP Extension
-- Mbstring PHP Extension
-- Tokenizer PHP Extension
-- XML PHP Extension
-
-## Preview
-
-![New Blog](https://pig-storage.b0.upaiyun.com/cover/2018/09/07/d2T4cAjTagf5L1rXH1FjLsFkJVffsPIGPkHEl2A5.jpg)
-
-![New Blog](https://pig-storage.b0.upaiyun.com/cover/2018/09/07/4b7ExtB6NHZVh8n5KnW2673Ej6gwtLm1SUAubtpa.jpg)
-
-## Install
-
-### 1. Clone the source code or create new project.
-
-```shell
-git clone https://github.com/jcc/blog.git
+```bash
+npm run install:web
+npm run setup
+npm run build
+npm run local:start
 ```
 
-OR
+- 首页：http://localhost:3000
+- 后台：http://localhost:3000/admin
+- 初始管理员：`admin@xuejunhao.com`，随机密码保存在 `web/local-admin.txt`，登录后可在“我的账号”修改。
+- 日志：`web/data/local-service.log`
+- 停止：`npm run local:stop`；状态：`npm run local:status`
+- 开发：`npm run dev`；前台生产运行：`npm start`
 
-```shell
-composer create-project jcc/blog
+后台可编写及预览 Markdown，管理草稿、公开与定时文章、分类、标签、友链、图片、评论与讨论审核、读者和管理员角色。读者可注册、登录、改名和修改密码、评论、点赞、发起讨论及回复。前台提供主题筛选、搜索、归档、明暗主题、移动布局、RSS、站点地图和文章 SEO。
+
+公开文章和讨论详情页提供“点赞”“分享”“复制链接”。登录后按账号记录帖子点赞，每人一赞，可取消，刷新后恢复状态；重复或并发提交同一状态不重复计数。访客可查看赞数并直接分享，点击点赞会跳转登录并保留返回地址。分享使用浏览器原生 Web Share 能力；不支持或不可用时展示可复制的链接，复制受限时可选中链接手动复制。分享地址来自当前网站的 origin 与帖子路径，本机使用 localhost、正式部署后使用访问域名；不包含查询参数或登录凭据，不统计无法确认的分享次数。评论的赞同功能保留，草稿、未来文章与已删除帖子不能点赞。
+
+导航中的“关于我”打开 `/resume`，桌面和手机主导航均只展示“文章”和“关于我”，原 `/about` 页面已移除；在后台“关于我”（`/admin/resume`）上传或选择已有照片，填写姓名、职位／身份、个人简介和 Markdown 履历，可记录工作经历、教育背景、项目、技能及联系方式并预览完整页面。选择“公开发布”并保存后对访客展示；选择“草稿”并保存可撤回公开页面，草稿内容与简介不进入前台、SEO 或站点地图。照片可移除或替换，已引用的照片及正文图片受删除保护；上传后仍需保存个人资料，未使用图片可在图片管理中清理。初始资料为空，不填入虚构履历。明暗主题和手机布局沿用共享卡片及正文样式，保存支持编辑冲突检测。
+
+简历顶部使用紧凑的照片与身份并排布局。“工作经历”和“作品”二级标题下，以加粗名称、Markdown 换行后的时间及介绍组成条目，分别呈现时间对齐列表和圆角作品卡片；桌面作品两列、手机单列。作品内可插入真实截图和访问链接，自由格式或尚未写完的内容保留普通 Markdown 排版，后台预览与公开页一致。
+
+每篇文章末尾都有“GitHub 记录”区域。在后台编辑文章时，点击“添加 GitHub 记录”，填写相关仓库、提交或 PR 的 HTTPS 地址与可选说明；每篇最多 12 条，可删除并随文章保存，打开排版预览时也能预览记录。公开页面显示记录类型、仓库名、提交短哈希或 PR 编号，点击跳转 GitHub。未关联的文章显示明确提示与个人 GitHub 入口，既有文章不会被自动填入无关记录。链接保存在本机数据库，不需要 GitHub Token，也不依赖 API 配额；不自动拉取提交内容或 PR 状态。
+
+界面采用简洁的灰阶配色、居中阅读区域和圆角控件，支持浅色与深色主题。首页直接展示搜索、分类筛选和文章列表，移除大幅介绍、装饰图案、英文眉题和页面区块小标题；阅读、归档、关于我、登录和后台使用相同颜色与控件。文章标题、正文中的 Markdown 结构及表单标签保留。
+
+顶部导航保持单行：品牌在左、主导航居中、账号和工具在右，宽屏采用左右等宽网格，768–1023px沿用同一行弹性布局；768px以下将导航、账号和主题切换收进菜单，顶栏保留品牌、搜索和菜单按钮。手机文章页可从菜单打开独立文章列表，768–1000px提供直接打开文章列表的按钮；菜单支持Escape关闭、焦点返回和窗口变宽自动关闭。明暗主题与全站组件一致。
+
+操作图标统一使用现有 Lucide SVG，替换字符箭头、加号和关闭符号。文章、讨论及后台文章编辑的返回控件共用 `BackLink`：18px左箭头、44px点击区域、辅助朗读名称与悬停提示；其他带图标的文字操作共用 `IconLabel`，图标16px、间距6px，文字和图标颜色沿用全站明暗主题。
+
+首页及搜索结果的文章卡片采用无外框图文列表：桌面左图右文，封面 256×144px，640–767px 为 208×128px，手机上图下文并保持 16:9；图片圆角 6px、卡片间距 32px，标题桌面 20px／手机 18px，摘要最多两行，日期、分类、标签及阅读时长放在底部。整张卡片可打开文章，分类和标签可独立筛选；键盘焦点显示整卡轮廓，封面悬停轻微放大并尊重减少动态效果设置。首页和搜索结果复用同一组件，字体与明暗配色沿用全站。
+
+友链、讨论、GitHub 关联及后台统计与图片卡片复用 `surface-card` 样式：20px 圆角、1px 细边框、桌面 24px／手机 20px 内边距，明暗主题保持一致；链接悬停仅轻微改变背景和边框，尊重减少动态效果设置。具体尺寸为本站设计选择。
+
+正式初始化保持文章列表为空，不再导入生成的示例笔记；已有账号和真实文章不会被覆盖，重复初始化也不会恢复已移除的示例。验收样例仅保存在 `web/scripts/fixtures/posts`，由隔离接口测试显式启用。本机原有三篇生成的示例已移除，并保留私密的可恢复快照。数据库、图片、凭据、构建产物和本机验收资料均由 Git 忽略。
+
+正文排版参考 [OpenAI 官方文档](https://developers.openai.com/api/docs/guides/text) 的实际样式：桌面 16px 正文、25.6px 行高、16px 段间距，统一标题、嵌套列表、加粗、引用、代码和仅带横向分隔线的表格；手机保持 16px 字号，行高增至 28.8px、段间距 20px，收紧多层列表缩进，长表格和代码在内部横向滚动，文章操作采用至少 44px 点击区域。文章、讨论、关于我和后台预览共用 `.prose`，沿用本站中文系统字体与明暗主题。
+
+后台文章编辑提供“标题自动编号”开关，按标题层级显示 1、1.1、1.1.1，并同步正文、排版预览与标题目录；原有文章默认关闭，可逐篇开启或关闭。手写序号、列表中的标题与引用内标题保留原样；Markdown 同时支持 `1. ## 标题` 这种有序列表中的标题。自动编号通过显示属性与样式呈现，不写回正文，也不改变原文锚点和划线评论的文本位置。升级前备份数据库并执行 `npm run setup`，新增第8版迁移仅增加编号开关；当前AIGC文章在本机与正式站点均已开启，本轮全部改动已于2026-10-14上线，详见 [上线验收](docs/deploy/2026-10-14.md)。
+
+文章详情的左侧文章导航提供顶部留白与「文章」小标题，日期、标题、作者和导读统一沿正文左边缘排列，作者头像与姓名在一行、任职另行展示，桌面正文最大768px，右侧200px标题目录与正文相隔48px；长目录单独滚动，「复制全文」保持可见。窄屏使用收起的正文目录和顶部复制入口，可复制包含标题、导读、作者及正文的Markdown，自动复制受限时提供手动复制窗口。详情继续使用正文优先、无大封面的布局，字体与明暗灰阶主题和其他页面一致，详见 [导航与详情布局](docs/NAVIGATION.md)。
+
+文章正文支持划线评论：电脑选中文字、手机长按选字后，点击“划线评论”，登录后填写想法；一次最多选择 2000 字，评论最多 3000 字。普通读者的评论和回复审核后公开，已公开引用显示细划线，点按可查看原文讨论、回复或定位原文；手机使用底部面板，桌面使用右侧面板，支持键盘打开、Escape 关闭和焦点恢复。重叠选区保留各自讨论，表格、加粗、链接和跨段文字均可引用。原文更新时依据引用及上下文重新定位，无法唯一匹配时保留评论并提示原文已变更；提交前若文章版本变化会拒绝过期选区并保留输入。后台审核显示引用内容，隐藏原评论同时隐藏整段回复，删除原评论级联清理回复。
+
+## 目录
+
+- `web/`：新版完整应用和锁文件。
+- `legacy/`：原 Laravel 5.8 / Vue 2 源码原样归档，保留版权与历史，默认不运行。
+- `docs/DEPLOYMENT.md`：服务器、Docker、反向代理、域名和备份说明。
+- `.github/workflows/ci.yml`：安装、类型、构建、隔离接口回归与产物检查。
+
+当前 checkout 最初未提供旧数据库或已运行实例；新版只初始化示例资料，未声称迁移旧站内容或旧密码。旧项目的第三方登录、邮件通知、关注及细粒度自定义角色不在本次新版交付范围；已接入的管理员／读者权限、密码登录、文章与社区核心功能可独立使用。
+
+## 验证与备份
+
+```bash
+npm run typecheck
+npm run build
+npm test
+cd web
+npm run backup
 ```
 
-### 2. Set the basic config
+接口回归使用临时数据库、临时图片目录和独立 3001 端口，结束后自动清理，不修改本机博客资料。数据库使用 WAL 与在线备份 API；不要在运行中只复制主 SQLite 文件。图片备份为现有文件的副本；需要严格一致备份时，在短暂停止写入后进行。凭据文件另行私密保存，不提交到仓库。
 
-```shell
-cp .env.example .env
-```
-
-Edit the `.env` file and set the `database` and other config for the system after you copy the `.env`.example file.
-
-### 2. Install the extended package dependency.
-
-Install the `Laravel` extended repositories: 
-
-```shell
-composer install -vvv
-```
-
-Install the `Vuejs` extended repositories: 
-
-```shel
-npm install
-```
-
-Compile the js code: 
-
-```shel
-npm run dev
-
-// OR
-
-npm run watch
-
-// OR
-
-npm run production
-```
-
-### 3. Run the blog install command, the command will run the `migrate` command and generate test data.
-
-```shell
-php artisan blog:install
-```
-
-## Contributors
-
-- [Jiajian Chan](http://github.com/jcc)
-
-## Thanks
-
-- [overtrue](https://github.com/overtrue)
-- [Laravist](https://www.laravist.com/)
-- [Laravel - China](https://laravel-china.org/)
-
-## Donate
-
-Support all ERC20 tokens. My Address:
-**0x600dfF1311E5DA3a8697fD86d4Fd9bed257395eb**
-
-## License
-
-The project is open-sourced software licensed under the [MIT license](http://opensource.org/licenses/MIT).
-
-QQ Group: 272734386
+代码托管在本仓库。完整博客需要 Node.js 服务器，GitHub Pages 无法运行登录和数据库后台。正式站点已于 2026-10-13 上线：[https://xuejunhao.com](https://xuejunhao.com)，后台为 `/admin`，原账号、文章、简历和照片已迁移；HTTPS 自动续期与每日私有备份已配置并验证，服务器采用独立非登录账号及回环端口，不影响已有站点，详见部署说明。后续通过线上后台管理正式内容，本机数据库保留为开发副本。
